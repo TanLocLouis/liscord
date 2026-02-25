@@ -1,0 +1,141 @@
+import { createContext, useContext, useEffect, useState } from "react";
+import { useToast } from "./ToastContext";
+
+
+const AuthContext = createContext();
+
+const AuthProvider = ( { children } ) => {
+    const [accessToken, setAccessToken] = useState(null);
+    const [userInfo, setUserInfo] = useState(localStorage.getItem("userInfo") ? JSON.parse(localStorage.getItem("userInfo")) : null);
+
+    const { addToast } = useToast();
+
+    useEffect(() => {
+        refreshToken();
+    }, []);
+
+    const signup = async (SignUpForm) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sign-up`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(SignUpForm)
+            })
+
+            if (!res.ok) {
+                if (res.status === 409) {
+                    throw { status: 409, message: "User already exists" };
+                } else if (res.status === 400) {
+                    const errorData = await res.json();
+                    throw { status: 400, message: errorData.message || "Invalid input data" };
+                }
+            }
+
+            return true;
+        } catch (err) {
+            if (err.status === 409) {
+                addToast("error", "User already exists. Please choose a different username or email.");
+            } else if (err.status === 400) {
+                addToast("error", `Sign up failed: ${err.message}`);
+            } else {
+                addToast("error", "Sign up failed. Please try again later.");
+            }
+            console.error(err);
+
+            return false;
+        }
+    }
+
+    const login = async (LoginForm) => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(LoginForm)
+            })
+
+            if (!res.ok) {
+                throw new Error("Account is not verified.");
+            }
+
+            const data = await res.json();
+
+            setAccessToken(data.accessToken);
+            setUserInfo(data.data);
+            localStorage.setItem("refreshToken", data.refreshToken);
+            localStorage.setItem("userInfo", JSON.stringify(data.data));
+
+            return true;
+        } catch (err) {
+            console.error(err);
+
+            return false;
+        }
+    }
+
+    const refreshToken = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/refresh-token`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ refreshToken: localStorage.getItem("refreshToken") })
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to refresh token");
+            }
+
+            // addToast("info", "Session refreshed successfully.");
+            const data = await res.json();
+            
+            setAccessToken(data.accessToken);
+
+            return true;
+        } catch {
+            console.error("Failed to refresh token");
+
+            return false;
+        }
+    }
+
+    const logout = () => {
+        setAccessToken(null);
+        setUserInfo(null);
+
+        localStorage.removeItem("refreshToken");
+        localStorage.removeItem("userInfo");
+
+        addToast("info", "Logged out successfully.");
+    }
+
+    const value = {
+        signup,
+        login,
+        refreshToken,
+        accessToken,
+        userInfo,
+        logout
+    };
+
+    return (
+        <AuthContext.Provider value={value}>
+            {children}
+        </AuthContext.Provider>
+    )
+}
+
+const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
+}
+
+export { AuthProvider, useAuth };
