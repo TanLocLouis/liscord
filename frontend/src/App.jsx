@@ -9,7 +9,7 @@ import ToastList from '@/components/Toast/ToastList'
 import TopHeader from '@/components/TopHeader/TopHeader'
 import Footer from '@/components/Footer/Footer'
 import VerifySignup from './pages/Verify/VerifySignUp'
-import Profile from './pages/Profile/profile'
+import Profile from './pages/Profile/Profile'
 import ResetPassword from './pages/ResetPassword/ResetPassword'
 import ResetPasswordForm from './pages/ResetPasswordForm/ResetPasswordForm'
 

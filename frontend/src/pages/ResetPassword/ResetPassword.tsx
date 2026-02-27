@@ -1,15 +1,19 @@
 import "./ResetPassword.css";
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { useToast } from "../../contexts/ToastContext";
 import { useAuth } from "../../contexts/AuthContext";
 
-const ResetPassword = () => {
-    const [ResetForm, setResetForm] = useState({
+interface ResetFormData {
+    email: string;
+}
+
+const ResetPassword: React.FC = () => {
+    const [ResetForm, setResetForm] = useState<ResetFormData>({
         email: "",
     })
 
-    const handleResetFormChanged = (e) => {
+    const handleResetFormChanged = (e: ChangeEvent<HTMLInputElement>) => {
         setResetForm({
             ...ResetForm,
             [e.target.name]: e.target.value
@@ -18,7 +22,7 @@ const ResetPassword = () => {
 
     const redirect = useNavigate();
     const { addToast } = useToast();
-    const handleResetPasswordFormSubmitted = async (e) => {
+    const handleResetPasswordFormSubmitted = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         try {

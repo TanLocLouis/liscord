@@ -1,16 +1,23 @@
 import "./Login.css";
-import { useState } from "react";
+import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router";
 import { useToast } from "../../contexts/ToastContext";
 import { useAuth } from "../../contexts/AuthContext";
 
+import { ChangeEvent } from "react";
+
+interface LoginFormData {
+    username: string;
+    password: string;
+}
+
 const Login = () => {
-    const [LoginForm, setLoginForm] = useState({
+    const [LoginForm, setLoginForm] = useState<LoginFormData>({
         username: "",
         password: ""
     })
 
-    const handleLoginFormChanged = (e) => {
+    const handleLoginFormChanged = (e: ChangeEvent<HTMLInputElement>) => {
         setLoginForm({
             ...LoginForm,
             [e.target.name]: e.target.value
@@ -20,7 +27,7 @@ const Login = () => {
     const redirect = useNavigate();
     const { addToast } = useToast();
     const { login } = useAuth();
-    const handleLoginFormSubmitted = async (e) => {
+    const handleLoginFormSubmitted = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const result = await login(LoginForm);

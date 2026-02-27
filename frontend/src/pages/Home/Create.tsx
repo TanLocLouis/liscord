@@ -10,7 +10,7 @@ import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { fetchWithAuth } from '../../utils/fetchWithAuth';
 
-function Create() {
+const Create: React.FC = () => {
   const { addToast } = useToast();
   const { userInfo } = useAuth();
   const navigate = useNavigate();

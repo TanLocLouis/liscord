@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router";
 import "./VerifySignUp.css";
 
-const VerifySignup = () => {
+const VerifySignup: React.FC = () => {
 
     const redirect = useNavigate();
     const handleBackToLoginClicked = () => {

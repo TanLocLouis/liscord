@@ -1,18 +1,23 @@
 import "./ResetPasswordForm.css";
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useToast } from "../../contexts/ToastContext";
 
-const ResetPasswordForm = () => {
+interface ResetFormData {
+    password: string;
+    confirmPassword: string;
+}
+
+const ResetPasswordForm: React.FC = () => {
     const [tokenParams] = useSearchParams();
     const resetToken = tokenParams.get("token");
 
-    const [ResetForm, setResetForm] = useState({
+    const [ResetForm, setResetForm] = useState<ResetFormData>({
         password: "",
         confirmPassword: ""
     })
 
-    const handleResetPasswordFormChanged = (e) => {
+    const handleResetPasswordFormChanged = (e: ChangeEvent<HTMLInputElement>) => {
         setResetForm({
             ...ResetForm,
             [e.target.name]: e.target.value
@@ -20,7 +25,7 @@ const ResetPasswordForm = () => {
     }
 
     const { addToast } = useToast();
-    const handleLoginFormSubmitted = async (e) => {
+    const handleLoginFormSubmitted = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         // Validate password

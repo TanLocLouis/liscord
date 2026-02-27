@@ -1,10 +1,16 @@
 import { redirect } from "react-router";
 import "./SignUp.css";
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 
-const SignUp = () => {
-    const [SignUpForm, setSignUpForm] = useState({
+interface SignUpFormData {
+    username: string;
+    email: string;
+    password: string;
+}
+
+const SignUp: React.FC = () => {
+    const [SignUpForm, setSignUpForm] = useState<SignUpFormData>({
         username: "",
         email: "",
         password: ""
@@ -16,7 +22,7 @@ const SignUp = () => {
         redirect("/login");
     }
 
-    const handleSignUpFormChanged = (e) => {
+    const handleSignUpFormChanged = (e: ChangeEvent<HTMLInputElement>) => {
         setSignUpForm({
             ...SignUpForm,
             [e.target.name]: e.target.value
@@ -24,7 +30,7 @@ const SignUp = () => {
     }
 
     const { signup } = useAuth();
-    const handleSignUpFormSubmitted = async (e) => {
+    const handleSignUpFormSubmitted = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         setIsSubmitting(true);

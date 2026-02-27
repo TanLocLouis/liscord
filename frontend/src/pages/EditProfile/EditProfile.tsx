@@ -1,19 +1,29 @@
 import "./EditProfile.css";
 import Button from "../../components/Button/Button";
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToast } from "../../contexts/ToastContext";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
+interface EditProfileProps {
+    setIsEditProfileOpen: (open: boolean) => void;
+}
 
-const EditProfile = ( { setIsEditProfileOpen }) => {
-    const handleCloseEditProfileClicked = (e) => {
+interface EditFormData {
+    currentPassword?: string;
+    newPassword?: string;
+    confirmNewPassword?: string;
+}
+
+
+const EditProfile: React.FC<EditProfileProps> = ( { setIsEditProfileOpen }) => {
+    const handleCloseEditProfileClicked = (e: MouseEvent<SVGSVGElement>) => {
         e.preventDefault();
         setIsEditProfileOpen(false);
     }
 
-    const [Data, setData] = useState({});
-    const handleFormChanged = (e) => {
+    const [Data, setData] = useState<EditFormData>({});
+    const handleFormChanged = (e: ChangeEvent<HTMLInputElement>) => {
         setData({
             ...Data,
             [e.target.name]: e.target.value
@@ -22,7 +32,7 @@ const EditProfile = ( { setIsEditProfileOpen }) => {
 
     const authContext  = useAuth();
     const { addToast } = useToast();
-    const handleEditProfile = async (e) => {
+    const handleEditProfile = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         // Validate new password
