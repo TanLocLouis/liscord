@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom";
 import Toast from "./Toast";
 
-import { useToast } from "../../contexts/ToastContext";
+import { useToast } from "@contexts/ToastContext";
 
 import "./Toast.css";
 

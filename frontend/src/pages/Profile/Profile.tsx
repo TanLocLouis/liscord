@@ -1,11 +1,8 @@
 import "./Profile.css";
 import { useEffect, useState } from "react";
-import { useToast } from "../../contexts/ToastContext";
-import { useAuth } from "../../contexts/AuthContext";
-import Card from "../../components/Card/Card";
-import { fetchWithAuth } from "../../utils/fetchWithAuth";
+import { useToast } from "@contexts/ToastContext";
+import { useAuth } from "@contexts/AuthContext";
 import EditProfile from "../EditProfile/EditProfile";
-import Pagination from "../../components/Pagination/Pagination";
 
 interface ProfileData {
     username?: string;

@@ -1,7 +1,7 @@
 import { redirect } from "react-router";
 import "./SignUp.css";
 import { useState, ChangeEvent, FormEvent } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "@contexts/AuthContext";
 
 interface SignUpFormData {
     username: string;

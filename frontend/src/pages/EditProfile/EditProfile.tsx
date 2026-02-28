@@ -1,8 +1,8 @@
 import "./EditProfile.css";
 import Button from "../../components/Button/Button";
 import { useState, ChangeEvent, FormEvent, MouseEvent } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from "@contexts/AuthContext";
+import { useToast } from "@contexts/ToastContext";
 import { fetchWithAuth } from "../../utils/fetchWithAuth";
 
 interface EditProfileProps {

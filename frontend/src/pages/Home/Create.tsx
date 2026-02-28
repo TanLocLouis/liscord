@@ -1,14 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '@contexts/AuthContext';
+import { useToast } from '@contexts/ToastContext';
 import './Create.css';
-
-import Switch from '@/components/Switch/Switch';
-import AutoResizeTextarea from '@/components/AutoResizeTextarea/AutoResizeTextarea';
-import Button from '../../components/Button/Button';
-
-import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { fetchWithAuth } from '../../utils/fetchWithAuth';
 
 const Create: React.FC = () => {
   const { addToast } = useToast();
@@ -24,6 +18,7 @@ const Create: React.FC = () => {
 
   return (
     <div>
+
       <h1>Hi</h1>
       <h1>Hi</h1>
       <h1>Hi</h1>

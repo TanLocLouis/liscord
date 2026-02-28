@@ -1,7 +1,7 @@
 import "./ResetPasswordForm.css";
 import { useState, ChangeEvent, FormEvent } from "react";
-import { useNavigate, useSearchParams } from "react-router";
-import { useToast } from "../../contexts/ToastContext";
+import { useSearchParams } from "react-router";
+import { useToast } from "@contexts/ToastContext";
 
 interface ResetFormData {
     password: string;

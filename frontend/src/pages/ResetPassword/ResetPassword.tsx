@@ -1,8 +1,7 @@
 import "./ResetPassword.css";
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router";
-import { useToast } from "../../contexts/ToastContext";
-import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "@contexts/ToastContext";
 
 interface ResetFormData {
     email: string;

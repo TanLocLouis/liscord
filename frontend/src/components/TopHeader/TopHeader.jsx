@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import "./TopHeader.css";
 import { useLayoutEffect } from "react";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "@contexts/AuthContext";
 
 const TopHeader = () => {
     const redirect = useNavigate();

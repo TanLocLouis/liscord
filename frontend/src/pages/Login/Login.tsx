@@ -1,8 +1,8 @@
 import "./Login.css";
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router";
-import { useToast } from "../../contexts/ToastContext";
-import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "@contexts/ToastContext";
+import { useAuth } from "@contexts/AuthContext";
 
 import { ChangeEvent } from "react";
 
