@@ -1,44 +1,45 @@
-import client from '../db/db.js';
-
-const db = client.db('quikbin');
-const usersCollection = db.collection('users');
+import pool from '../db/db.js';
 
 const authModel = {
     async createUser(userData) {
-        const user = {
-            username: userData.username,
-            email: userData.email,
-            passwordHash: userData.passwordHash,
-            createdAt: new Date(Date.now()),
-            isActive: false
-        }
-
-        const result = await usersCollection.insertOne(user);
+        const [result] = await pool.execute(
+            'INSERT INTO users (username, email, passwordHash, createdAt, isActive) VALUES (?, ?, ?, ?, ?)',
+            [userData.username, userData.email, userData.passwordHash, new Date(), false]
+        );
         return result;
     },
     async isUserExisted(username) {
-        const user = await usersCollection.findOne({ username: username });
-        return user !== null;
+        const [rows] = await pool.execute(
+            'SELECT 1 FROM users WHERE username = ? LIMIT 1',
+            [username]
+        );
+        return rows.length > 0;
     },
     async setActive(username) {
-        const result = await usersCollection.updateOne(
-            { username: username },
-            { $set: { isActive: true } }
+        const [result] = await pool.execute(
+            'UPDATE users SET isActive = ? WHERE username = ?',
+            [true, username]
         );
         return result;
     },
     async getUserByUsername(username) {
-        const user = await usersCollection.findOne({ username: username });
-        return user;
+        const [rows] = await pool.execute(
+            'SELECT * FROM users WHERE username = ? LIMIT 1',
+            [username]
+        );
+        return rows[0] || null;
     },
     async getUserByEmail(email) {
-        const user = await usersCollection.findOne({ email: email });
-        return user;
+        const [rows] = await pool.execute(
+            'SELECT * FROM users WHERE email = ? LIMIT 1',
+            [email]
+        );
+        return rows[0] || null;
     },
     async updatePassword(username, newPasswordHash) {
-        const result = await usersCollection.updateOne(
-            { username: username },
-            { $set: { passwordHash: newPasswordHash } }
+        const [result] = await pool.execute(
+            'UPDATE users SET passwordHash = ? WHERE username = ?',
+            [newPasswordHash, username]
         );
         return result;
     }

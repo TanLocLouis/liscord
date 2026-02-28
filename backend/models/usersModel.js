@@ -1,29 +1,27 @@
-import client from '../db/db.js';
-
-const db = client.db('quikbin');
-const usersCollection = db.collection('users');
+import pool from '../db/db.js';
 
 const usersModel = {
     async getUserProfile(userId) {
-        const user = await usersCollection.findOne({ username: userId }, {
-            projection: { passwordHash: 0 }
-        });
-
-        return user;
+        const [rows] = await pool.execute(
+            'SELECT username, email, createdAt, isActive FROM users WHERE username = ? LIMIT 1',
+            [userId]
+        );
+        return rows[0] || null;
     },
     async getUserPassword(userId) {
-        const user = await usersCollection.findOne({ username: userId }, {
-            projection: { passwordHash: 1 }
-        });
-        return user.passwordHash;
+        const [rows] = await pool.execute(
+            'SELECT passwordHash FROM users WHERE username = ? LIMIT 1',
+            [userId]
+        );
+        return rows[0]?.passwordHash || null;
     },
     async updateUserPassword(userId, newPasswordHash) {
         // console.log('[DEBUG] usersModel.updateUserPassword called with: ', userId, newPasswordHash);
-        const result = await usersCollection.updateOne(
-            { username: userId },
-            { $set: { passwordHash: newPasswordHash } }
+        const [result] = await pool.execute(
+            'UPDATE users SET passwordHash = ? WHERE username = ?',
+            [newPasswordHash, userId]
         );
-        return result.modifiedCount > 0;
+        return result.affectedRows > 0;
     }
 }
 
