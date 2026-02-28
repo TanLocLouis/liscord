@@ -30,8 +30,6 @@ function generateVerificationEmail(token) {
 }
 
 export async function sendMail(email, verificationLink) {
-  // console.log("Sending mail to: ", email);
-
   if (!process.env.GMAIL_MAIL || !process.env.GMAIL_MAIL_TOKEN) {
     console.warn(
       "[WARN] Mail credentials not set (GMAIL_MAIL / GMAIL_MAIL_TOKEN). Email sending will likely fail."
@@ -56,11 +54,8 @@ export async function sendMail(email, verificationLink) {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    // eslint-disable-next-line no-console
-    // console.log("[INFO] MAIL SENDER: ", info.response);
     return info;
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error("[ERROR] MAIL SENDER: ", err);
     throw err;
   }

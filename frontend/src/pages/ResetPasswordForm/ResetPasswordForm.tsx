@@ -89,7 +89,7 @@ const ResetPasswordForm: React.FC = () => {
                         </button>
 
                         <div className="forgot-password-link">
-                            <label>Forgot password? Reset <a href="/reset-password">here</a></label>
+                            <label> After reset login <a href="/login">here</a></label>
                         </div>
                     </form>
                 </div>

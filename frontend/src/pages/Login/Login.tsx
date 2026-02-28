@@ -48,11 +48,11 @@ const Login = () => {
                     <form className="login-container-form" onSubmit={handleLoginFormSubmitted}>
                         <h2 className="login-form-header">Login</h2>
                         <div className="input-group">
-                            <label htmlFor="username">Username or Email</label>
+                            <label htmlFor="username">Username</label>
                             <input type="text" 
                                 id="username"
                                 name="username"
-                                placeholder="Enter your username or email"
+                                placeholder="Enter your username"
                                 required 
                                 onChange={handleLoginFormChanged}/>
                         </div>

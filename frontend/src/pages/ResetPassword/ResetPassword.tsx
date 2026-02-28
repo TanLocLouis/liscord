@@ -36,7 +36,7 @@ const ResetPassword: React.FC = () => {
                 })
             });
 
-            addToast("success", "Password reset email sent. Please check your inbox.");
+            addToast("info", "Password reset email sent. Please check your inbox.");
             if (!response.ok) {
                 throw new Error("Failed to reset password");
             }
@@ -67,12 +67,8 @@ const ResetPassword: React.FC = () => {
                         </div>
 
                         <button type="submit" className="login-submit-button">
-                            Reset Password
+                            Send Reset Link
                         </button>
-
-                        <div className="forgot-password-link">
-                            <label>Forgot password? Reset <a href="/reset-password">here</a></label>
-                        </div>
                     </form>
                 </div>
             </div>

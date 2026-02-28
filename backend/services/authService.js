@@ -3,6 +3,7 @@ import passwordUtil from '../utils/password.js';
 import { sendMail } from '../utils/emailSender.js';
 import jwtUtils from '../utils/jwt.js';
 import jwt from '../utils/jwt.js';
+import AppError from '../utils/AppError.js';
 
 const tokenMemory = new Map();
 
@@ -20,9 +21,7 @@ async function signUp(userData) {
     // Check if username exists
     const exists = await authModel.isUserExisted(user.username);
     if (exists) {
-        const err = new Error('User already exists');
-        err.code = 'USER_EXISTS';
-        throw err;
+        throw new AppError('User already exists', 409, 'USER_EXISTS');
     }
 
     // Create user
@@ -43,16 +42,12 @@ async function signUp(userData) {
 async function verifyAccount(token) {
     const tokenData = tokenMemory.get(token);
     if (!tokenData) {
-        const err = new Error('Invalid or expired token');
-        err.code = 'INVALID_TOKEN';
-        throw err;
+        throw new AppError('Invalid or expired token', 400, 'INVALID_TOKEN');
     }
 
     if (Date.now() > tokenData.expiresAt) {
         tokenMemory.delete(token);
-        const err = new Error('Token has expired');
-        err.code = 'TOKEN_EXPIRED';
-        throw err;
+        throw new AppError('Token has expired', 400, 'TOKEN_EXPIRED');
     }
 
     const result = await authModel.setActive(tokenData.username);
@@ -64,24 +59,18 @@ async function verifyAccount(token) {
 async function login(username, password) {
     const user = await authModel.getUserByUsername(username);
     if (!user) {
-        const err = new Error('User not found');
-        err.code = 'USER_NOT_FOUND';
-        throw err;
+        throw new AppError('User not found', 404, 'USER_NOT_FOUND');
     }
 
     // Check if user is active
     if (!user.isActive) {
-        const err = new Error('Account is not verified');
-        err.code = 'ACCOUNT_INACTIVE';
-        throw err;
+        throw new AppError('Account is not verified', 403, 'ACCOUNT_INACTIVE');
     }
 
     // Check password
     const passwordMatch = await passwordUtil.comparePassword(password, user.passwordHash);
     if (!passwordMatch) {
-        const err = new Error('Invalid password');
-        err.code = 'INVALID_PASSWORD';
-        throw err;
+        throw new AppError('Invalid password', 401, 'INVALID_PASSWORD');
     }
 
     // Generate tokens
@@ -105,19 +94,17 @@ async function refreshToken(token) {
     try {
         const result = jwtUtils.verifyAccessToken(token);
         if (!result) {
-            const err = new Error('Invalid token');
-            err.code = 'INVALID_TOKEN';
-            throw err;
+            throw new AppError('Invalid token', 401, 'INVALID_TOKEN');
         }
 
         const newAccessToken = jwt.generateAccessToken({ username: result.username });
         return newAccessToken;
     } catch (err) {
+        if (err instanceof AppError) throw err;
         if (err.name === 'TokenExpiredError') {
-            const error = new Error('Token has expired');
-            error.code = 'TOKEN_EXPIRED';
-            throw error;
+            throw new AppError('Token has expired', 401, 'TOKEN_EXPIRED');
         }
+        throw err;
     }
 }
 
@@ -126,9 +113,7 @@ async function resetPassword(email) {
     const user = await authModel.getUserByEmail(email);
 
     if (!user) {
-        const err = new Error('User not found');
-        err.code = 'USER_NOT_FOUND';
-        throw err;
+        throw new AppError('User not found', 404, 'USER_NOT_FOUND');
     }
 
     // Send password reset email
@@ -138,22 +123,25 @@ async function resetPassword(email) {
         expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes
     });
     const verificationLink = "http://localhost:5173" + "/reset-password-form?token=" + token;
-    sendMail(user.email, verificationLink);
+
+    try {
+        await sendMail(user.email, verificationLink);
+        return true;
+    } catch (err) {
+        tokenMemory.delete(token);
+        throw new AppError('Failed to send email', 500, 'EMAIL_SEND_FAILED');
+    }
 }
 
 async function verifyResetToken(resetToken, newPassword) {
     const tokenData = tokenMemory.get(resetToken);
 
     if (!tokenData) {
-        const err = new Error('Invalid or expired token');
-        err.code = 'INVALID_TOKEN';
-        throw err;
+        throw new AppError('Invalid or expired token', 400, 'INVALID_TOKEN');
     }
     if (Date.now() > tokenData.expiresAt) {
         tokenMemory.delete(resetToken);
-        const err = new Error('Token has expired');
-        err.code = 'TOKEN_EXPIRED';
-        throw err;
+        throw new AppError('Token has expired', 400, 'TOKEN_EXPIRED');
     }
 
     const result = await authModel.getUserByUsername(tokenData.username);
