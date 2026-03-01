@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '@contexts/AuthContext';
 import { useToast } from '@contexts/ToastContext';
-import './Create.css';
+import Sidebar from '@components/Sidebar/Sidebar.js';
 
 const Create: React.FC = () => {
   const { addToast } = useToast();
@@ -17,13 +17,8 @@ const Create: React.FC = () => {
   }, [userInfo]);
 
   return (
-    <div>
-
-      <h1>Hi</h1>
-      <h1>Hi</h1>
-      <h1>Hi</h1>
-      <h1>Hi</h1>
-      <h1>Hi</h1>
+    <div className="m-0">
+      <Sidebar />
     </div>
   )
 }

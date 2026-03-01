@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router";
 import { useState } from "react";
-import "./TopHeader.css";
 import { useLayoutEffect } from "react";
 import { useAuth } from "@contexts/AuthContext";
 
@@ -46,12 +45,12 @@ const TopHeader = () => {
     }
 
     return (
-        <div className="top-header">
+        <div className="top-header flex justify-center items-center w-full fixed top-0 z-999 h-11 bg-[var(--color-secondary)]">
             <h2 style={{marginLeft: "0.5em"}}
                 onClick={handleLogoClicked}
               >Liscord</h2>
 
-            <div className="top-header-right">
+            <div className="top-header-right flex justify-center items-center gap-1 ml-auto mr-1">
                 {userInfo &&
                     <>
                         <div onClick={handleProfileClicked}>
