@@ -1,11 +1,17 @@
 import { useState, createContext, useContext } from "react";
 
-const ToastContext = createContext();
+interface ToastContextType {
+    toastList: Array<any>;
+    addToast: (type: string, message: string) => void;
+    removeToast: (id: number) => void;
+}
 
-const ToastProvider = ({ children }) => {
-    const [toastList, setToastList] = useState([]);
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-    const addToast = (type = "info", message) => {
+const ToastProvider = ({ children }: { children: React.ReactNode }) => {
+    const [toastList, setToastList] = useState<Array<any>>([]);
+
+    const addToast = (type = "info", message: string) => {
         const id = Date.now() + message;
 
         const existedMessage = toastList.find((toast) => toast.message === message);
@@ -17,7 +23,7 @@ const ToastProvider = ({ children }) => {
         ]);
     }
 
-    const removeToast = (id) => {
+    const removeToast = (id: number) => {
         setToastList((prevList) => prevList.filter((toast) => toast.id !== id));
     }
 

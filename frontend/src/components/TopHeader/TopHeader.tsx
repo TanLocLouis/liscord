@@ -10,7 +10,7 @@ const TopHeader = () => {
         redirect("/");
     }
 
-    const [theme, setTheme] = useState(localStorage.getItem("theme") || "dark");
+    const [theme, setTheme] =  useState<"light" | "dark">(localStorage.getItem("theme") === "light" ? "light" : "dark");
     useLayoutEffect(() => {
         document.documentElement.dataset.theme = theme;
         localStorage.setItem("theme", theme);

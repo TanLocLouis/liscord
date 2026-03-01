@@ -1,12 +1,22 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { useToast } from "./ToastContext";
+import { useToast } from "./ToastContext.js";
 
+interface AuthContextType {
+    signup: (SignUpForm: {username: string, email: string, password: string}) => Promise<boolean>;
+    login: (LoginForm: {username: string, password: string}) => Promise<boolean>;
+    refreshToken: () => Promise<boolean>;
+    accessToken: string | null;
+    userInfo: any;
+    logout: () => void;
+}
 
-const AuthContext = createContext();
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AuthProvider = ( { children } ) => {
-    const [accessToken, setAccessToken] = useState(null);
-    const [userInfo, setUserInfo] = useState(localStorage.getItem("userInfo") ? JSON.parse(localStorage.getItem("userInfo")) : null);
+const AuthProvider = ( { children }: { children: React.ReactNode } ) => {
+    const [accessToken, setAccessToken] = useState<string | null>(null);
+
+    const userInfoFromStorage = localStorage.getItem("userInfo");
+    const [userInfo, setUserInfo] = useState<any>(userInfoFromStorage ? JSON.parse(userInfoFromStorage) : null);
 
     const { addToast } = useToast();
 
@@ -14,7 +24,7 @@ const AuthProvider = ( { children } ) => {
         refreshToken();
     }, []);
 
-    const signup = async (SignUpForm) => {
+    const signup = async (SignUpForm: {username: string, email: string, password: string}) => {
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/sign-up`, {
                 method: "POST",
@@ -34,7 +44,7 @@ const AuthProvider = ( { children } ) => {
             }
 
             return true;
-        } catch (err) {
+        } catch (err: any) {
             if (err.status === 409) {
                 addToast("error", "User already exists. Please choose a different username or email.");
             } else if (err.status === 400) {
@@ -48,7 +58,7 @@ const AuthProvider = ( { children } ) => {
         }
     }
 
-    const login = async (LoginForm) => {
+    const login = async (LoginForm: {username: string, password: string}) => {
         try {
             const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/login`, {
                 method: "POST",

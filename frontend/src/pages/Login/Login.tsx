@@ -1,10 +1,10 @@
 import "./Login.css";
-import { FormEvent, useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useNavigate } from "react-router";
 import { useToast } from "@contexts/ToastContext";
 import { useAuth } from "@contexts/AuthContext";
 
-import { ChangeEvent } from "react";
+import { type ChangeEvent } from "react";
 
 interface LoginFormData {
     username: string;

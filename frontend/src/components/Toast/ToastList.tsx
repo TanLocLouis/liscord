@@ -1,7 +1,7 @@
 import { createPortal } from "react-dom";
-import Toast from "./Toast";
+import Toast from "./Toast.js";
 
-import { useToast } from "@contexts/ToastContext";
+import { useToast } from "@contexts/ToastContext.jsx";
 
 import "./Toast.css";
 
@@ -10,7 +10,7 @@ const ToastList = () => {
 
     return createPortal(
         <div className="toast-list">
-            {toastList.map((toast) => (
+            {toastList.map((toast: any) => (
                 <Toast
                     key={toast.id}
                     message={toast.message}
