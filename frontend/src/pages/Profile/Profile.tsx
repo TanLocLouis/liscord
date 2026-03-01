@@ -7,9 +7,9 @@ import EditProfile from "../EditProfile/EditProfile";
 interface ProfileData {
     username?: string;
     email?: string;
-    avatarUrl?: string;
-    createdAt?: string;
-    isVerified?: boolean;
+    avatar?: string;
+    created_at?: string;
+    is_active?: boolean;
 }
 
 const Profile: React.FC = () => {
@@ -68,9 +68,9 @@ const Profile: React.FC = () => {
                 <div className="profile-top-section-banner">
                     <div className="profile-top-section-content">
                         <div className="profile-avatar">
-                            {profileData.avatarUrl ? (
+                            {profileData.avatar ? (
                                 <img
-                                    src={profileData.avatarUrl}
+                                    src={profileData.avatar}
                                     alt="User Avatar"
                                 />
                             ) : (
@@ -81,8 +81,8 @@ const Profile: React.FC = () => {
                         <div className="profile-info">
                             <h2 className="profile-username">{profileData.username || "Username"}</h2>
                             <p className="profile-email"> 📧 {profileData.email || "Email"}</p>
-                            <p className="profile-createdAt">📆 {profileData.createdAt ? convertToDateString(profileData.createdAt) : "N/A"}</p>
-                            <p className="profile-isVerified">{profileData.isVerified ? "✅ Verified" : "❌ Not Verified"}</p>
+                            <p className="profile-createdAt">📆 {profileData.created_at ? convertToDateString(profileData.created_at) : "N/A"}</p>
+                            <p className="profile-isVerified">{profileData.is_active ? "✅ Verified" : "❌ Not Verified"}</p>
                         </div>
 
                         <div className="profile-edit">

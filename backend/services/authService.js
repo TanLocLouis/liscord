@@ -4,11 +4,13 @@ import { sendMail } from '../utils/emailSender.js';
 import jwtUtils from '../utils/jwt.js';
 import jwt from '../utils/jwt.js';
 import AppError from '../utils/AppError.js';
+import { randomUUID } from 'node:crypto';
 
 const tokenMemory = new Map();
 
 async function signUp(userData) {
     const user = {
+        user_id: randomUUID(),
         username: userData.username,
         email: userData.email,
         passwordHash: userData.passwordHash,
@@ -63,12 +65,12 @@ async function login(username, password) {
     }
 
     // Check if user is active
-    if (!user.isActive) {
+    if (!user.is_active) {
         throw new AppError('Account is not verified', 403, 'ACCOUNT_INACTIVE');
     }
 
     // Check password
-    const passwordMatch = await passwordUtil.comparePassword(password, user.passwordHash);
+    const passwordMatch = await passwordUtil.comparePassword(password, user.password_hash);
     if (!passwordMatch) {
         throw new AppError('Invalid password', 401, 'INVALID_PASSWORD');
     }
@@ -80,9 +82,9 @@ async function login(username, password) {
     const userData = {
         username: user.username,
         email: user.email,
-        isActive: user.isActive
+        isActive: user.is_active
     }
-
+    
     return {
         data: userData,
         refreshToken,

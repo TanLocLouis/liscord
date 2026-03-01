@@ -3,8 +3,8 @@ import pool from '../db/db.js';
 const authModel = {
     async createUser(userData) {
         const [result] = await pool.execute(
-            'INSERT INTO users (username, email, passwordHash, createdAt, isActive) VALUES (?, ?, ?, ?, ?)',
-            [userData.username, userData.email, userData.passwordHash, new Date(), false]
+            'INSERT INTO users (user_id, username, email, password_hash, created_at, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+            [userData.user_id, userData.username, userData.email, userData.passwordHash, new Date(), false]
         );
         return result;
     },
@@ -17,7 +17,7 @@ const authModel = {
     },
     async setActive(username) {
         const [result] = await pool.execute(
-            'UPDATE users SET isActive = ? WHERE username = ?',
+            'UPDATE users SET is_active = ? WHERE username = ?',
             [true, username]
         );
         return result;
@@ -38,7 +38,7 @@ const authModel = {
     },
     async updatePassword(username, newPasswordHash) {
         const [result] = await pool.execute(
-            'UPDATE users SET passwordHash = ? WHERE username = ?',
+            'UPDATE users SET password_hash = ? WHERE username = ?',
             [newPasswordHash, username]
         );
         return result;
