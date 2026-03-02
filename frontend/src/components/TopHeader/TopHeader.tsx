@@ -45,7 +45,7 @@ const TopHeader = () => {
     }
 
     return (
-        <div className="top-header flex justify-center items-center w-full fixed top-0 z-999 h-11 bg-[var(--color-secondary)]">
+        <div className="top-header flex justify-center items-center w-full fixed top-0 z-50 h-11 bg-[var(--color-secondary)]">
             <h2 style={{marginLeft: "0.5em"}}
                 onClick={handleLogoClicked}
               >Liscord</h2>
