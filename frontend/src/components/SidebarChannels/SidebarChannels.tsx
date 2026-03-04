@@ -15,7 +15,7 @@ const SidebarChannels = ( {serverName} : {serverName: string} ) => {
     return (
         <div className="fixed w-[200px] h-full top-0 left-16 pt-12 pb-12 pl-2 bg-[var(--color-secondary)] border-l border-white">
             <div>
-                <h2 className="text-lg font-bold mb-2">servername</h2> 
+                <h2 className="text-lg font-bold mb-2">{serverName}</h2> 
             </div>
 
             <hr></hr>

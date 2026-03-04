@@ -7,6 +7,7 @@ dotenv.config();
 const JWT_ACCESS_TOKEN_SECRET = process.env.JWT_ACCESS_TOKEN_SECRET || 'your_access_token_secret';
 
 type TokenPayload = {
+    user_id: string;
     username: string;
     email?: string;
 };

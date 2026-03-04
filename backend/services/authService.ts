@@ -86,8 +86,8 @@ async function login(username: string, password: string) {
     }
 
     // Generate tokens
-    const refreshToken = jwtUtils.generateRefreshToken({ username: user.username, email: user.email });
-    const accessToken = jwtUtils.generateAccessToken({ username: user.username });
+    const refreshToken = jwtUtils.generateRefreshToken({user_id: user.user_id, username: user.username, email: user.email });
+    const accessToken = jwtUtils.generateAccessToken({user_id: user.user_id, username: user.username });
 
     const userData = {
         username: user.username,
@@ -109,7 +109,7 @@ async function refreshToken(token: string) {
             throw new AppError('Invalid token', 401, 'INVALID_TOKEN');
         }
 
-        const newAccessToken = jwtUtils.generateAccessToken({ username: result.username });
+        const newAccessToken = jwtUtils.generateAccessToken({ user_id: result.user_id, username: result.username });
         return newAccessToken;
     } catch (err) {
         if (err instanceof AppError) throw err;

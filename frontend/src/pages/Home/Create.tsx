@@ -4,7 +4,6 @@ import { useAuth } from '@contexts/AuthContext';
 import { useToast } from '@contexts/ToastContext';
 
 import Sidebar from '@components/Sidebar/Sidebar.js';
-import SidebarChannels from '@components/SidebarChannels/SidebarChannels.js';
 
 const Create: React.FC = () => {
   const { addToast } = useToast();
@@ -21,7 +20,6 @@ const Create: React.FC = () => {
   return (
     <div className="m-0">
       <Sidebar />
-      <SidebarChannels />
     </div>
   )
 }

@@ -27,8 +27,12 @@ const authenticate: RequestHandler = (req, res, next) => {
 
         if (typeof user === 'string') {
             req.user = { username: user };
-        } else if (user && typeof user === 'object' && 'username' in user && typeof user.username === 'string') {
+        } else if (user && typeof user === 'object' 
+            && 'user_id' in user && typeof user.user_id === 'string'
+            && 'username' in user && typeof user.username === 'string' 
+            && 'user_id' in user && typeof user.user_id === 'string') {
             req.user = {
+                user_id: user.user_id,
                 username: user.username,
                 ...(typeof user.email === 'string' ? { email: user.email } : {})
             };
