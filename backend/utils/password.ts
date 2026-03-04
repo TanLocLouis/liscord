@@ -1,18 +1,19 @@
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
+import type { RequestHandler } from 'express';
 
 /**
  * Hash a plain password
  * @param {string} plainPassword - The password to hash
  * @returns {Promise<string>} - The hashed password
  */
-async function hashPassword(plainPassword) {
+async function hashPassword(plainPassword: string): Promise<string> {
   const saltRounds = 10;
   const hashed = await bcrypt.hash(plainPassword, saltRounds);
   return hashed;
 }
 
-async function genToken() {
+async function genToken(): Promise<string> {
   return crypto.randomBytes(32).toString('hex');
 }
 
@@ -22,7 +23,7 @@ async function genToken() {
  * @param {string} hashedPassword - The hashed password to compare against
  * @returns {Promise<boolean>} - True if passwords match, false otherwise
  */
-async function comparePassword(plainPassword, hashedPassword) {
+async function comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
   return await bcrypt.compare(plainPassword, hashedPassword);
 }
 
@@ -31,12 +32,16 @@ async function comparePassword(plainPassword, hashedPassword) {
  * Validates password if bin is password-protected
  * Attaches isAuthenticated flag to req object
  */
-function authenticatePassword(req, res, next) {
+const authenticatePassword: RequestHandler = async (req, res, next) => {
   // This middleware is called after bin is retrieved from DB
   // Expected: req.bin (the bin document), req.query.password (user input)
   
   const bin = req.bin;
   const passwordProvided = req.query && req.query.password;
+
+  if (!bin) {
+    return res.status(404).json({ message: 'Bin not found' });
+  }
 
   // If bin has no password, it's public
   if (!bin.password || bin.password === '') {
@@ -51,22 +56,24 @@ function authenticatePassword(req, res, next) {
   }
 
   // Compare passwords
-  bcrypt.compare(passwordProvided, bin.password, (err, result) => {
-    if (err) {
-      console.error('[ERROR] Password comparison error', err);
-      return res.status(401).json({ message: 'Authentication failed' });
-    }
+  if (typeof passwordProvided !== 'string') {
+    return res.status(401).json({ message: 'Invalid password' });
+  }
+
+  try {
+    const result = await bcrypt.compare(passwordProvided, bin.password);
 
     if (result) {
       req.isAuthenticated = true;
-      // console.log('[STATUS] Password authentication successful');
       return next();
-    } else {
-      // console.log('[STATUS] Invalid password provided');
-      return res.status(401).json({ message: 'Invalid password' });
     }
-  });
-}
+
+    return res.status(401).json({ message: 'Invalid password' });
+  } catch (err) {
+    console.error('[ERROR] Password comparison error', err);
+    return res.status(401).json({ message: 'Authentication failed' });
+  }
+};
 
 export default {
   hashPassword,

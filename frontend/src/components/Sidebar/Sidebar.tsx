@@ -17,7 +17,7 @@ const Sidebar = () => {
 
     return (
         <div>
-            <div className="sidebar pt-12 pb-12 bg-[var(--color-secondary)] w-16 h-screen flex flex-col align-center items-center ">
+            <div className="sidebar pt-12 pb-12 bg-[var(--color-secondary)] w-16 h-screen flex flex-col align-center items-center">
                 <ul className="overflow-y-auto">
                     {serverList.map((server) => (
                         <li key={server.server_id}>

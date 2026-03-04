@@ -2,10 +2,12 @@ import mysql from 'mysql2/promise';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const mysqlPort = Number(process.env.MYSQL_PORT ?? 3306);
+
 // Connect to MySQL
 const pool = mysql.createPool({
     host: process.env.MYSQL_HOST || 'localhost',
-    port: process.env.MYSQL_PORT || 3306,
+    port: Number.isNaN(mysqlPort) ? 3306 : mysqlPort,
     user: process.env.MYSQL_USER || 'root',
     password: process.env.MYSQL_PASSWORD || '',
     database: process.env.MYSQL_DATABASE || 'liscord',

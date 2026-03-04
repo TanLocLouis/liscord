@@ -2,18 +2,28 @@ import authModel from '../models/authModel.js';
 import passwordUtil from '../utils/password.js';
 import { sendMail } from '../utils/emailSender.js';
 import jwtUtils from '../utils/jwt.js';
-import jwt from '../utils/jwt.js';
 import AppError from '../utils/AppError.js';
 import { randomUUID } from 'node:crypto';
 
-const tokenMemory = new Map();
+type SignUpInput = {
+    username: string;
+    email: string;
+    password: string;
+};
 
-async function signUp(userData) {
+type TokenMemoryValue = {
+    username: string;
+    expiresAt: number;
+};
+
+const tokenMemory = new Map<string, TokenMemoryValue>();
+
+async function signUp(userData: SignUpInput) {
     const user = {
         user_id: randomUUID(),
         username: userData.username,
         email: userData.email,
-        passwordHash: userData.passwordHash,
+        passwordHash: '',
         isActive: false
     };
 
@@ -41,7 +51,7 @@ async function signUp(userData) {
     return result;
 }
 
-async function verifyAccount(token) {
+async function verifyAccount(token: string) {
     const tokenData = tokenMemory.get(token);
     if (!tokenData) {
         throw new AppError('Invalid or expired token', 400, 'INVALID_TOKEN');
@@ -58,7 +68,7 @@ async function verifyAccount(token) {
     return result;
 }
 
-async function login(username, password) {
+async function login(username: string, password: string) {
     const user = await authModel.getUserByUsername(username);
     if (!user) {
         throw new AppError('User not found', 404, 'USER_NOT_FOUND');
@@ -92,25 +102,25 @@ async function login(username, password) {
     };
 }
 
-async function refreshToken(token) {
+async function refreshToken(token: string) {
     try {
         const result = jwtUtils.verifyAccessToken(token);
-        if (!result) {
+        if (!result || typeof result.username !== 'string') {
             throw new AppError('Invalid token', 401, 'INVALID_TOKEN');
         }
 
-        const newAccessToken = jwt.generateAccessToken({ username: result.username });
+        const newAccessToken = jwtUtils.generateAccessToken({ username: result.username });
         return newAccessToken;
     } catch (err) {
         if (err instanceof AppError) throw err;
-        if (err.name === 'TokenExpiredError') {
+        if (err instanceof Error && err.name === 'TokenExpiredError') {
             throw new AppError('Token has expired', 401, 'TOKEN_EXPIRED');
         }
         throw err;
     }
 }
 
-async function resetPassword(email) {
+async function resetPassword(email: string): Promise<boolean> {
     // Check if user exists
     const user = await authModel.getUserByEmail(email);
 
@@ -135,7 +145,7 @@ async function resetPassword(email) {
     }
 }
 
-async function verifyResetToken(resetToken, newPassword) {
+async function verifyResetToken(resetToken: string, newPassword: string) {
     const tokenData = tokenMemory.get(resetToken);
 
     if (!tokenData) {

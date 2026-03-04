@@ -11,7 +11,7 @@ const CreateChannel = (props: CreateChannelProps) => {
     }
 
     return (
-        <div className="">
+        <div className="fixed z-10">
             <div className="fixed top-0 left-0 w-full h-full bg-black-1 backdrop-blur-sm"></div>
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[400px] bg-[var(--color-secondary)] rounded-lg flex justify-center items-center">
                 <form className="flex flex-col justify-center items-center w-full h-full m-5">

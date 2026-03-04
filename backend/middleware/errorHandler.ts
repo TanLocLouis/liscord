@@ -1,10 +1,13 @@
 import AppError from '../utils/AppError.js';
+import type { ErrorRequestHandler } from 'express';
 
 /**
  * Global error handling middleware (must have 4 parameters).
  * Distinguishes between operational errors (AppError) and unexpected errors.
  */
-const errorHandler = (err, req, res, next) => {
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+    void req;
+    void next;
     // If it's an operational error we threw intentionally
     if (err instanceof AppError) {
         return res.status(err.statusCode).json({

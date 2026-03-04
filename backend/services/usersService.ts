@@ -2,7 +2,7 @@ import usersModel from "../models/usersModel.js";
 import passwordUtils from "../utils/password.js";
 import AppError from "../utils/AppError.js";
 
-async function getUserProfile(userId) {
+async function getUserProfile(userId: string) {
     const user = await usersModel.getUserProfile(userId);
     if (!user) {
         throw new AppError('User not found', 404, 'USER_NOT_FOUND');
@@ -10,7 +10,7 @@ async function getUserProfile(userId) {
     return user;
 }
 
-async function updateUserPassword(userId, oldPassword, newPassword) {
+async function updateUserPassword(userId: string, oldPassword: string, newPassword: string) {
     const userPassword = await usersModel.getUserPassword(userId);
     if (!userPassword) {
         throw new AppError('User not found', 404, 'USER_NOT_FOUND');

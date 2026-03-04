@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-function generateVerificationEmail(token) {
+function generateVerificationEmail(token: string): string {
   return `
     <!DOCTYPE html>
     <html>
@@ -29,7 +29,7 @@ function generateVerificationEmail(token) {
   `;
 }
 
-export async function sendMail(email, verificationLink) {
+export async function sendMail(email: string, verificationLink: string): Promise<unknown> {
   if (!process.env.GMAIL_MAIL || !process.env.GMAIL_MAIL_TOKEN) {
     console.warn(
       "[WARN] Mail credentials not set (GMAIL_MAIL / GMAIL_MAIL_TOKEN). Email sending will likely fail."

@@ -2,10 +2,14 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
+    "build": "tsc",
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon server.js"
+    "typecheck": "tsc --noEmit",
+    "dev": "nodemon --watch . --ext ts --exec tsx server.ts"
   },
   "keywords": [],
   "author": "",
@@ -21,6 +25,16 @@
     "mysql2": "^3.11.0",
     "node": "^23.11.0",
     "nodemailer": "^7.0.13",
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.11",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.3.1",
+    "@types/nodemailer": "^7.0.1",
+    "tsx": "^4.20.3"
   }
 }
