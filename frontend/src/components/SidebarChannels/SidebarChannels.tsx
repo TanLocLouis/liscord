@@ -14,6 +14,7 @@ interface Channel {
 const SidebarChannels = ( {serverName, serverId} : {serverName: string, serverId: string} ) => {
     const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
     const [channelsList, setChannelsList] = useState<Channel[]>([]);
+    const [currentChannelId, setCurrentChannelId] = useState<string>("");
     const authContext = useAuth();
 
     useEffect(() => {
@@ -45,6 +46,10 @@ const SidebarChannels = ( {serverName, serverId} : {serverName: string, serverId
         getServerChannels();
     }, [serverId, isCreateChannelOpen])
 
+    const handleChannelClicked = (channelId: string) => {
+        setCurrentChannelId(channelId);
+    };
+
     return (
         <div className="fixed w-[200px] h-full top-0 left-16 pt-12 pb-12 pl-2 bg-[var(--color-secondary)] border-l border-white">
             <div>
@@ -57,8 +62,10 @@ const SidebarChannels = ( {serverName, serverId} : {serverName: string, serverId
                 <label>{channelsList.length === 0 ? "No channels available" : ""}</label>
                 <ul className="mt-1">
                     {channelsList.map((channel) => (
-                        <li key={channel.channel_id} className="px-2 py-1 rounded hover:bg-[var(--color-primary)] cursor-pointer">
-                            # {channel.channel_name}
+                        <li key={channel.channel_id} onClick={() => handleChannelClicked(channel.channel_id)} className="px-2 py-1 rounded">
+                            <div className={`hover:bg-[var(--color-primary)] cursor-pointer ${currentChannelId === channel.channel_id ? 'bg-[var(--color-primary)]' : ''}`}>
+                                # {channel.channel_name}
+                            </div>
                         </li>
                     ))}
                 </ul>

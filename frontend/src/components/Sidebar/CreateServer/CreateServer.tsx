@@ -3,6 +3,7 @@ import Button from "../../Button/Button.js";
 import { useAuth } from "../../../contexts/AuthContext.js";
 import { useToast } from "../../../contexts/ToastContext.js";
 import { fetchWithAuth } from "../../../utils/fetchWithAuth.jsx";
+import { redirect, useNavigate } from "react-router";
 
 interface CreateServerProps {
     setIsCreateServerOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,6 +32,7 @@ const CreateServer = (props: CreateServerProps) => {
         }));
     };
 
+    const redirect = useNavigate();
     const handleCreateServerSubmitted = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
@@ -60,6 +62,7 @@ const CreateServer = (props: CreateServerProps) => {
 
             addToast("info", "Server created successfully.");
             props.setIsCreateServerOpen(false);
+            redirect("/");
         } catch (err) {
             console.error("Create server error:", err);
             addToast("error", "Failed to create server. Please try again.");
