@@ -1,5 +1,6 @@
 import pool from '../db/db.js';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2';
+import client from '../db/scylla.js';
 
 export type CreateChannelInput = {
 	channelId: string;

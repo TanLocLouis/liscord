@@ -48,13 +48,14 @@ const SidebarChannels = ( {serverName, serverId} : {serverName: string, serverId
     return (
         <div className="fixed w-[200px] h-full top-0 left-16 pt-12 pb-12 pl-2 bg-[var(--color-secondary)] border-l border-white">
             <div>
-                <h2 className="text-lg font-bold mb-2">{serverName}</h2> 
+                <h2 className="text-lg font-bold mb-2">{serverName ? serverName : "Please choose or create a server"}</h2> 
             </div>
 
             <hr></hr>
             
             <div>
-                <ul className="mt-4">
+                <label>{channelsList.length === 0 ? "No channels available" : ""}</label>
+                <ul className="mt-1">
                     {channelsList.map((channel) => (
                         <li key={channel.channel_id} className="px-2 py-1 rounded hover:bg-[var(--color-primary)] cursor-pointer">
                             # {channel.channel_name}
