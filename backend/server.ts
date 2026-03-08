@@ -4,6 +4,7 @@ import type { RequestHandler } from 'express';
 import authRoutes from './routes/authRoutes.js';
 import usersRoutes from './routes/usersRoutes.js';
 import serverRoutes from './routes/serverRoutes.js';
+import channelRoutes from './routes/channelRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/servers', serverRoutes);
+app.use('/api/channels', channelRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

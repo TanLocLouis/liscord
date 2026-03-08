@@ -1,16 +1,49 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CreateChannel from "./CreateChannel/CreateChannel.js";
+import { useAuth } from "../../contexts/AuthContext.js";
+import { fetchWithAuth } from "../../utils/fetchWithAuth.jsx";
 
-const SidebarChannels = ( {serverName} : {serverName: string} ) => {
+interface Channel {
+    channel_id: string;
+    channel_name: string;
+    type: string;
+    position: number;
+}
+
+const SidebarChannels = ( {serverName, serverId} : {serverName: string, serverId: string} ) => {
     const [isCreateChannelOpen, setIsCreateChannelOpen] = useState(false);
+    const [channelsList, setChannelsList] = useState<Channel[]>([]);
+    const authContext = useAuth();
 
+    useEffect(() => {
+        const getServerChannels = async () => {
+            if (!serverId) {
+                setChannelsList([]);
+                return;
+            }
 
-    const channelsList = [
-        {channel_id: 1, channel_name: "general"},
-        {channel_id: 2, channel_name: "random"},
-        {channel_id: 3, channel_name: "help"},
-    ]
+            try {
+                const response = await fetchWithAuth(authContext, `${import.meta.env.VITE_API_URL}/api/channels/server/${serverId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authContext?.accessToken}`,
+                    },
+                });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch channels');
+                }
+                const data = await response.json();
+                setChannelsList(data.channels);
+            } catch (error) {
+                console.error('Error fetching channels:', error);
+                setChannelsList([]);
+            }
+        };
+
+        getServerChannels();
+    }, [serverId, isCreateChannelOpen])
 
     return (
         <div className="fixed w-[200px] h-full top-0 left-16 pt-12 pb-12 pl-2 bg-[var(--color-secondary)] border-l border-white">
@@ -39,7 +72,7 @@ const SidebarChannels = ( {serverName} : {serverName: string} ) => {
                 </div>
             </li>
 
-            {isCreateChannelOpen && <CreateChannel setIsCreateChannelOpen={setIsCreateChannelOpen} />}
+            {isCreateChannelOpen && <CreateChannel setIsCreateChannelOpen={setIsCreateChannelOpen} serverId={serverId} />}
 
         </div>
     )
