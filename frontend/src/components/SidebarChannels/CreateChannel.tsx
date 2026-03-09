@@ -1,8 +1,8 @@
 import { useState, type ChangeEvent, type FormEvent, type MouseEvent } from "react";
-import Button from "../../Button/Button.js";
-import { useAuth } from "../../../contexts/AuthContext.js";
-import { useToast } from "../../../contexts/ToastContext.js";
-import { fetchWithAuth } from "../../../utils/fetchWithAuth.jsx";
+import Button from "../Button/Button.js";
+import { useAuth } from "../../contexts/AuthContext.js";
+import { useToast } from "../../contexts/ToastContext.js";
+import { fetchWithAuth } from "../../utils/fetchWithAuth.jsx";
 
 interface CreateChannelProps {
     setIsCreateChannelOpen: React.Dispatch<React.SetStateAction<boolean>>;

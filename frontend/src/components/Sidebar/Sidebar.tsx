@@ -1,5 +1,5 @@
 import SidebarChannels from "@components/SidebarChannels/SidebarChannels.js";
-import CreateServer from "./CreateServer/CreateServer.js"
+import CreateServer from "./CreateServer.js"
 import { useAuth } from "@contexts/AuthContext";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 
@@ -68,7 +68,7 @@ const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververIn
 
     return (
         <div>
-            <div className="sidebar pt-12 pb-12 bg-[var(--color-secondary)] w-16 h-screen flex flex-col align-center items-center">
+            <div className="sidebar bg-[var(--color-secondary)] m-0 w-16 h-full flex flex-col align-center items-center">
                 <ul className="overflow-y-auto">
                     {serverList.map((server) => (
                         <li key={server.server_id} onClick={() => handleServerClicked(server.server_name, server.server_id)}>

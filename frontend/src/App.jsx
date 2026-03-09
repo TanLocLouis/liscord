@@ -2,7 +2,7 @@ import './App.css'
 import { BrowserRouter, Route, Routes } from "react-router"
 import { ToastProvider } from './contexts/ToastContext'
 import { AuthProvider } from './contexts/AuthContext'
-import Create from './pages/Home/Create'
+import Home from './pages/Home/Home'
 import SignUp from './pages/SignUp/SignUp'
 import Login from './pages/Login/Login'
 import ToastList from '@/components/Toast/ToastList'
@@ -32,7 +32,7 @@ function App() {
                 <Route path="/verify-sign-up" element={<VerifySignup />}/>
                 <Route path="/profile" element={<Profile />}/>
 
-                <Route path="/" element={<Create />}/>
+                <Route path="/" element={<Home />}/>
 
               </Routes>
 
