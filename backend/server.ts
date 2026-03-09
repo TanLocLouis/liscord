@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes.js';
 import usersRoutes from './routes/usersRoutes.js';
 import serverRoutes from './routes/serverRoutes.js';
 import channelRoutes from './routes/channelRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 
 const app = express();
@@ -16,6 +17,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/servers', serverRoutes);
 app.use('/api/channels', channelRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

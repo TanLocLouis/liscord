@@ -1,5 +1,8 @@
 import Button from "@components/Button/Button.js";
 import MessageCard, { type ChatMessage } from "./MessageCard.js";
+import { useAuth } from "@contexts/AuthContext.jsx";
+import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
+import { useEffect, useState } from "react";
 
 type Member = {
     id: string;
@@ -7,34 +10,8 @@ type Member = {
     status: "online" | "idle" | "dnd" | "offline";
 };
 
-const messages: ChatMessage[] = [
-    {
-        id: "m-1",
-        author: "Maya",
-        avatar: "M",
-        time: "09:14",
-        text: "Hello everyone!",
-    },
-    {
-        id: "m-2",
-        author: "You",
-        avatar: "Y",
-        time: "09:16",
-        text: "Welcome to this channel!",
-        mine: true,
-    },
-    {
-        id: "m-3",
-        author: "You",
-        avatar: "Y",
-        time: "09:16",
-        text: "Great!!!",
-        mine: true,
-    },
-];
-
-const members: Member[] = [
-];
+// const members: Member[] = [
+// ];
 
 interface ChatBoxProps {
     channelInfo: {
@@ -44,6 +21,100 @@ interface ChatBoxProps {
 }
 
 const ChatBox = ( { channelInfo } : ChatBoxProps) => {
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messageInput, setMessageInput] = useState("");
+    const [isSending, setIsSending] = useState(false);
+    const authContext = useAuth();
+
+    const fetchMessages = async () => {
+        if (!channelInfo?.channelId) {
+            setMessages([]);
+            return;
+        }
+
+        try {
+            const response = await fetchWithAuth(
+                authContext,
+                `${import.meta.env.VITE_API_URL}/api/messages/channel/${channelInfo.channelId}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${authContext?.accessToken}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to fetch messages");
+            }
+
+            const data = await response.json();
+            const normalizedMessages: ChatMessage[] = (data.messages || []).map((message: any) => ({
+                ...message,
+                avatar: message.avatar || message.user_name?.charAt(0)?.toUpperCase() || "?",
+                mine: message.user_id === authContext?.userInfo?.user_id,
+            }));
+            
+            // Show message in ASC
+            normalizedMessages.sort(
+                (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+            );
+            setMessages(normalizedMessages);
+        } catch (error) {
+            console.error("Error fetching messages:", error);
+            setMessages([]);
+        }
+    };
+
+    useEffect(() => {
+        fetchMessages();
+    }, [channelInfo?.channelId, authContext?.accessToken]);
+
+    const handleSendMessage = async () => {
+        if (!channelInfo?.channelId || !messageInput.trim() || isSending) {
+            return;
+        }
+
+        try {
+            setIsSending(true);
+
+            const response = await fetchWithAuth(
+                authContext,
+                `${import.meta.env.VITE_API_URL}/api/messages/`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${authContext?.accessToken}`,
+                    },
+                    body: JSON.stringify({
+                        channelId: channelInfo.channelId,
+                        content: messageInput.trim(),
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to send message");
+            }
+
+            setMessageInput("");
+            await fetchMessages();
+        } catch (error) {
+            console.error("Error sending message:", error);
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const handleComposerKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            await handleSendMessage();
+        }
+    };
+
     return (
         <section
             className="flex-1 min-w-0 h-[calc(100vh-80px)] m-2 rounded-[18px] border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] shadow-[0_16px_38px_color-mix(in_oklab,var(--color-text-primary)_18%,transparent)] grid grid-rows-[auto_1fr_auto] overflow-hidden bg-[radial-gradient(circle_at_10%_-10%,color-mix(in_oklab,var(--color-primary)_20%,transparent),transparent_45%),radial-gradient(circle_at_90%_0%,color-mix(in_oklab,var(--color-info)_16%,transparent),transparent_38%),color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)] max-md:mx-2 max-md:my-[0.4rem] max-md:rounded-[14px]"
@@ -67,7 +138,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             <div className="grid grid-cols-[1fr_230px] min-h-0 max-[1080px]:grid-cols-1">
                 <div className="min-h-0 overflow-y-auto p-[1.1rem] flex flex-col gap-3" aria-label="Message list">
                     {messages.map((message) => (
-                        <MessageCard key={message.id} message={message} />
+                        <MessageCard key={message.message_id} message={message} />
                     ))}
                 </div>
 
@@ -98,6 +169,9 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             <footer className="border-t border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] grid grid-cols-[1fr_auto] items-center gap-[0.6rem] px-4 py-[0.8rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_74%,transparent)] max-md:grid-cols-1 place-items-center">
                 <input
                     type="text"
+                    value={messageInput}
+                    onChange={(event) => setMessageInput(event.target.value)}
+                    onKeyDown={handleComposerKeyDown}
                     className="w-full m-1 border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] rounded-[10px] px-[0.8rem] py-[0.62rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)_90%,transparent)] text-[var(--color-text-primary)] text-[0.92rem] focus:outline-none focus:border-[color:color-mix(in_oklab,var(--color-primary)_50%,transparent)]"
                     placeholder={`Message #${channelInfo?.channelName || "general"}`}
                     aria-label="Message composer"
@@ -106,9 +180,11 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 <Button
                     width="100px"
                     height="40px"
-                    title="Send"
+                    title={isSending ? "Sending..." : "Send"}
                     color="var(--color-text-primary)"
                     backgroundColor="var(--color-primary)"
+                    onClick={handleSendMessage}
+                    disabled={!channelInfo?.channelId || !messageInput.trim() || isSending}
                 />
             </footer>
         </section>

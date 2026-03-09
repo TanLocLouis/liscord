@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from "react";
 import CreateChannel from "./CreateChannel.js";
-import { useAuth } from "../../contexts/AuthContext.js";
-import { fetchWithAuth } from "../../utils/fetchWithAuth.jsx";
+import { useAuth } from "@contexts/AuthContext.js";
+import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 
 interface Channel {
     channel_id: string;
@@ -65,7 +65,7 @@ const SidebarChannels = ( { serverInfo, onChannelInfoChanged } : SidebarChannels
                 <h2 className="text-lg font-bold mb-2">{serverInfo?.serverName ? serverInfo.serverName : "Please choose or create a server"}</h2> 
             </div>
 
-            <hr></hr>
+            <hr className="border-[var(--color-text-primary)] my-2"></hr>
             
             <div>
                 <label>{channelsList.length === 0 ? "No channels available" : ""}</label>
@@ -78,7 +78,7 @@ const SidebarChannels = ( { serverInfo, onChannelInfoChanged } : SidebarChannels
                         </li>
                     ))}
 
-                    <hr></hr>
+                    <hr className="border-[var(--color-text-primary)] my-2"></hr>
 
                     <li key={"create-channel"} onClick={() => setIsCreateChannelOpen(true)}>
                         <div className="w-10 h-10 flex justify-center items-center m-0.5 mt-3 border-2 rounded-lg border-[var(--color-text-primary)] hover:scale-105 hover:bg-[var(--color-primary)] hover:shadow-[0_2px_10px_rgba(255,255,255,0.5)] transition-all duration-200">

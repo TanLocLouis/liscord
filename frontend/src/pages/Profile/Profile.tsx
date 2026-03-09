@@ -1,8 +1,8 @@
 import "./Profile.css";
 import { useEffect, useState } from "react";
-import { useToast } from "@contexts/ToastContext";
-import { useAuth } from "@contexts/AuthContext";
-import EditProfile from "../EditProfile/EditProfile";
+import { useToast } from "@contexts/ToastContext.jsx";
+import { useAuth } from "@contexts/AuthContext.jsx";
+import EditProfile from "@pages/EditProfile/EditProfile.jsx";
 
 interface ProfileData {
     username?: string;

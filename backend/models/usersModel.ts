@@ -34,6 +34,13 @@ const usersModel = {
             [newPasswordHash, userId]
         );
         return result.affectedRows > 0;
+    },
+    async getUserNameByUserId(userId: string): Promise<string | null> {
+        const [rows] = await pool.execute<RowDataPacket[]>(
+            'SELECT username FROM users WHERE user_id = ? LIMIT 1',
+            [userId]
+        );
+        return rows[0]?.username || null;
     }
 }
 

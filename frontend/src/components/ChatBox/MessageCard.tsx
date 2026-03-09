@@ -1,9 +1,11 @@
+import timeAgo from "@utils/timeAgo.js";
+    
 export type ChatMessage = {
-    id: string;
-    author: string;
+    message_id: string;
+    user_name: string;
     avatar: string;
-    time: string;
-    text: string;
+    created_at: string;
+    content: string;
     mine?: boolean;
 };
 
@@ -29,10 +31,10 @@ const MessageCard = ({ message }: MessageCardProps) => {
 
             <div>
                 <div className="flex items-baseline gap-2">
-                    <strong className="text-[0.95rem] text-[var(--color-text-primary)]">{message.author}</strong>
-                    <time className="text-xs opacity-70 text-[var(--color-text-primary)]">{message.time}</time>
+                    <strong className="text-[0.95rem] text-[var(--color-text-primary)]">{message.user_name}</strong>
+                    <time className="text-xs opacity-70 text-[var(--color-text-primary)]">{timeAgo(message.created_at)}</time>
                 </div>
-                <p className="mt-[0.35rem] text-[0.9rem] leading-[1.45] text-[var(--color-text-primary)]">{message.text}</p>
+                <p className="mt-[0.35rem] content-[0.9rem] leading-[1.45] text-[var(--color-text-primary)]">{message.content}</p>
             </div>
         </article>
     );

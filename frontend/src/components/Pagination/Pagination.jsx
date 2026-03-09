@@ -1,4 +1,4 @@
-import Button from "../Button/Button.jsx";
+import Button from "@components/Button/Button.jsx";
 import "./Pagination.css";
 
 const Pagination = ({ totalItems, itemsPerPage, currentPage, onPageChange }) => {
