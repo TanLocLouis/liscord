@@ -13,3 +13,9 @@
 - Admin Dashboard
     + Stats
     + Admini
+
+- ChatBox
+    + Client => Socket Gateway => Redis => API => Database
+    + API => EventStream => Socket Gateway => Client 
+    + Using WebSocket to send/receive data
+    + Using Redis as Event Stream

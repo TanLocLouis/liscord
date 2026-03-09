@@ -1,5 +1,5 @@
 import './App.css'
-import { BrowserRouter, Route, Routes } from "react-router"
+import { BrowserRouter, Route, Routes, Navigate } from "react-router"
 import { ToastProvider } from './contexts/ToastContext'
 import { AuthProvider } from './contexts/AuthContext'
 import Home from './pages/Home/Home'
@@ -12,6 +12,7 @@ import VerifySignup from './pages/Verify/VerifySignUp'
 import Profile from './pages/Profile/Profile'
 import ResetPassword from './pages/ResetPassword/ResetPassword'
 import ResetPasswordForm from './pages/ResetPasswordForm/ResetPasswordForm'
+import ProtectedRoute from './pages/ProtectedRoute/ProtectedRoute.jsx'
 
 function App() {
   return (
@@ -27,14 +28,21 @@ function App() {
               <Routes>
                 <Route path="/sign-up" element={<SignUp />}/>
                 <Route path="/login" element={<Login />}/>
-                <Route path="/reset-password" element={<ResetPassword />}/>
-                <Route path="/reset-password-form" element={<ResetPasswordForm />}/>
-                <Route path="/verify-sign-up" element={<VerifySignup />}/>
-                <Route path="/profile" element={<Profile />}/>
-
-                <Route path="/" element={<Home />}/>
-
               </Routes>
+
+              <ProtectedRoute>
+                <Routes>
+                  <Route path="/profile" element={<Profile />}/>
+                  <Route path="/reset-password" element={<ResetPassword />}/>
+                  <Route path="/reset-password-form" element={<ResetPasswordForm />}/>
+                  <Route path="/verify-sign-up" element={<VerifySignup />}/>
+                  <Route path="/profile" element={<Profile />}/>
+
+                  <Route path="/" element={<Navigate to="/channels/@me" replace/>} />
+                  <Route path="/channels/@me" element={<Home />}/>
+                  <Route path="/channels/:serverId/:channelId" element={<Home />}/>
+                </Routes>
+              </ProtectedRoute>
 
               <Footer />
             </AuthProvider>

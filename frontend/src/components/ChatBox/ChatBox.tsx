@@ -50,17 +50,8 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             }
 
             const data = await response.json();
-            const normalizedMessages: ChatMessage[] = (data.messages || []).map((message: any) => ({
-                ...message,
-                avatar: message.avatar || message.user_name?.charAt(0)?.toUpperCase() || "?",
-                mine: message.user_id === authContext?.userInfo?.user_id,
-            }));
             
-            // Show message in ASC
-            normalizedMessages.sort(
-                (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-            );
-            setMessages(normalizedMessages);
+            setMessages(data.messages);
         } catch (error) {
             console.error("Error fetching messages:", error);
             setMessages([]);
@@ -135,8 +126,8 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 </div> */}
             </header>
 
-            <div className="grid grid-cols-[1fr_230px] min-h-0 max-[1080px]:grid-cols-1">
-                <div className="min-h-0 overflow-y-auto p-[1.1rem] flex flex-col gap-3" aria-label="Message list">
+            <div className="grid grid-cols-[1fr_50px] min-h-0 max-[1080px]:grid-cols-1">
+                <div className="min-h-0 overflow-y-auto p-[1.1rem] flex flex-col-reverse gap-3" aria-label="Message list">
                     {messages.map((message) => (
                         <MessageCard key={message.message_id} message={message} />
                     ))}
