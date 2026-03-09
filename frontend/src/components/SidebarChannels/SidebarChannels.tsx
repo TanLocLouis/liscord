@@ -52,7 +52,19 @@ const SidebarChannels = ( { serverInfo, onChannelInfoChanged } : SidebarChannels
         };
 
         getServerChannels();
+
     }, [serverInfo?.serverId, isCreateChannelOpen])
+
+    useEffect(() => {
+        if (channelsList.length > 0) {
+            const firstChannel = channelsList[0];
+
+            if (firstChannel) {
+                setCurrentChannelId(firstChannel.channel_id);
+                onChannelInfoChanged(firstChannel.channel_name, firstChannel.channel_id);
+            }
+        }
+    }, [channelsList])
 
     const handleChannelClicked = (channelName: string, channelId: string) => {
         setCurrentChannelId(channelId);

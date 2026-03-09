@@ -1,6 +1,7 @@
 import AppError from '../utils/AppError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import serverServices from '../services/serverServices.js';
+import channelServices from '../services/channelServices.js';
 
 type CreateServerBody = {
 	serverName: string;
@@ -26,7 +27,16 @@ const createServer = asyncHandler(async (req, res) => {
 		...(body.serverIcon !== undefined ? { serverIcon: body.serverIcon } : {}),
 	};
 	
+	// Create server
 	const result = await serverServices.createServer(userId, createPayload);
+
+	// Create default channels (general)
+	await channelServices.createChannel(userId, {
+		serverId: result.serverId,
+		channelName: 'general',
+		type: 'text',
+		position: 0,
+	});
 
 	res.status(201).json(result);
 });
