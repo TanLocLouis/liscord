@@ -12,3 +12,6 @@
 
 - Clustering in Scylla
     + Using partition ((channel_id), created_at, message_id) to optimize.
+
+- Minio Docker Container works like AWS S3
+    + Avatar bucket should set Public Object, Private Bucket.

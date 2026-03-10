@@ -15,7 +15,7 @@ type UserPasswordRow = RowDataPacket & {
 const usersModel = {
     async getUserProfile(userId: string): Promise<UserProfileRow | null> {
         const [rows] = await pool.execute<UserProfileRow[]>(
-            'SELECT username, email, created_at, is_active FROM users WHERE username = ? LIMIT 1',
+            'SELECT username, email, avatar, created_at, is_active FROM users WHERE username = ? LIMIT 1',
             [userId]
         );
         return rows[0] || null;
@@ -41,6 +41,20 @@ const usersModel = {
             [userId]
         );
         return rows[0]?.username || null;
+    },
+    async getUserAvatarByUserId(userId: string): Promise<string | null> {
+        const [rows] = await pool.execute<RowDataPacket[]>(
+            'SELECT avatar FROM users WHERE user_id = ? LIMIT 1',
+            [userId]
+        );
+        return rows[0]?.avatar || null;
+    },
+    async updateUserAvatar(userId: string, avatarUrl: string): Promise<boolean> {
+        const [result] = await pool.execute<ResultSetHeader>(
+            'UPDATE users SET avatar = ? WHERE username = ?',
+            [avatarUrl, userId]
+        );
+        return result.affectedRows > 0;
     }
 }
 

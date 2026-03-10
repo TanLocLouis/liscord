@@ -73,19 +73,19 @@ const messageModel = {
 		const userIds = Array.from(new Set(result.rows.map(row => row.user_id.toString())));
 		const userIdToUsernameMap: Record<string, string> = {};
 
-		for (const userId of userIds) {
-			const username = await usersModel.getUserNameByUserId(userId);
-			console.log(`[DEBUG] Fetched username for userId ${userId}: ${username}`);
-			if (username) {
-				userIdToUsernameMap[userId] = username;
-			}
-		}
+		// for (const userId of userIds) {
+		// 	const username = await usersModel.getUserNameByUserId(userId);
+		// 	console.log(`[DEBUG] Fetched username for userId ${userId}: ${username}`);
+		// 	if (username) {
+		// 		userIdToUsernameMap[userId] = username;
+		// 	}
+		// }
 
 		return result.rows.map((row) => ({
 			channel_id: row.channel_id.toString(),
 			message_id: row.message_id.toString(),
 			user_id: row.user_id.toString(),
-			user_name: userIdToUsernameMap[row.user_id.toString()] || 'Unknown User',
+			// user_name: userIdToUsernameMap[row.user_id.toString()] || 'Unknown User',
 			content: row.content,
 			type: row.type,
 			created_at: row.created_at,

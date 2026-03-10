@@ -3,6 +3,7 @@ import type { MouseEvent, ChangeEvent } from "react";
 import { useToast } from "@contexts/ToastContext.jsx";
 import { useAuth } from "@contexts/AuthContext.jsx";
 import EditProfile from "./EditProfile.js";
+import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 
 interface ProfileData {
     username?: string;
@@ -15,6 +16,7 @@ interface ProfileData {
 const Profile: React.FC = () => {
     const { addToast } = useToast();
     const { userInfo, accessToken } = useAuth();
+    const authContext = useAuth();
 
     const [profileData, setProfileData] = useState<ProfileData>({});
     const [binsData, setBinsData] = useState<unknown[]>([]);
@@ -87,7 +89,7 @@ const Profile: React.FC = () => {
             const formData = new FormData();
             formData.append('avatar', file);
 
-            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/users/avatar`, {
+            const res = await fetchWithAuth(authContext ,`${import.meta.env.VITE_API_URL}/api/users/avatar`, {
                 method: "PATCH",
                 headers: {
                     "Authorization": `Bearer ${accessToken}`
@@ -119,6 +121,7 @@ const Profile: React.FC = () => {
                         >
                             {profileData.avatar ? (
                                 <img
+                                    className="w-full h-full object-cover rounded-2xl"
                                     src={profileData.avatar}
                                     alt="User Avatar"
                                 />

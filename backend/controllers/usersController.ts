@@ -33,7 +33,21 @@ const updateUserPassword = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Password updated successfully' });
 });
 
+const updateUserAvatar = asyncHandler(async (req, res) => {
+    if (!req.user?.username) {
+        throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+    }
+
+    if (!req.file) {
+        throw new AppError('No avatar file provided', 400, 'NO_AVATAR_FILE');
+    }
+
+    const avatarUrl = await usersService.updateUserAvatar(req.user.username, req.file);
+    res.status(200).json({ message: 'Avatar updated successfully', avatarUrl });
+});
+
 export default {
     getUserProfile,
     updateUserPassword,
+    updateUserAvatar,
 }

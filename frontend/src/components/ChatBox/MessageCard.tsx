@@ -22,12 +22,12 @@ const MessageCard = ({ message }: MessageCardProps) => {
                     : "border-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-text-primary)_22%,transparent)_74%,transparent)]"
             }`}
         >
-            <span
-                className="w-10 h-10 rounded-[10px] inline-flex items-center justify-center font-bold text-[0.95rem] text-[var(--color-secondary)] bg-[linear-gradient(155deg,var(--color-primary),var(--color-info))]"
+            <img
+                className="w-10 h-10 rounded-full object-cover"
                 aria-hidden="true"
-            >
-                {message.avatar}
-            </span>
+                src={message.avatar}
+                alt={`${message.user_name}'s avatar`}
+            />
 
             <div>
                 <div className="flex items-baseline gap-2">

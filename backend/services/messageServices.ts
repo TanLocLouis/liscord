@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import AppError from '../utils/AppError.js';
 import messageModel from '../models/messageModel.js';
 import channelModel from '../models/channelModel.js';
+import usersModel from '../models/usersModel.js';
 
 type CreateMessagePayload = {
 	channelId: string;
@@ -84,9 +85,29 @@ async function getChannelMessages(userId: string, channelId: string, limit?: num
 	const messageLimit = limit && limit > 0 && limit <= 100 ? limit : 50;
 	const messages = await messageModel.getMessagesByChannelId(normalizedChannelId, messageLimit);
 
+	// find usernames for each message
+	const userIds = Array.from(new Set(messages.map(msg => msg.user_id)));
+	const userIdToUsernameMap: Record<string, string> = {};
+	const userIdToAvatarMap: Record<string, string> = {};
+
+	for (const userId of userIds) {
+		const username = await usersModel.getUserNameByUserId(userId);
+		const avatar = await usersModel.getUserAvatarByUserId(userId);
+		if (username) {
+			userIdToUsernameMap[userId] = username;
+		}
+		if (avatar) {
+			userIdToAvatarMap[userId] = avatar;
+		}
+	}
+
+
 	return {
-		messages,
-	};
+		messages: messages.map(msg => ({
+			...msg,
+			user_name: userIdToUsernameMap[msg.user_id] || 'Unknown User',
+			avatar: userIdToAvatarMap[msg.user_id] || null,
+	}))};
 }
 
 export default {
