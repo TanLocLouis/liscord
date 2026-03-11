@@ -64,8 +64,8 @@ const CreateServer = (props: CreateServerProps) => {
             props.setIsCreateServerOpen(false);
             redirect("/");
         } catch (err) {
-            console.error("Create server error:", err);
-            addToast("error", "Failed to create server. Please try again.");
+            console.error("Create server error: ", err);
+            addToast("error", "Create server error: " + err);
         } finally {
             setIsSubmitting(false);
         }

@@ -21,7 +21,7 @@ const authenticate: RequestHandler = (req, res, next) => {
 
     jwt.verify(token, jwtSecret, (err, user) => {
         if (err) {
-            console.log('[STATUS] Invalid token ', err);
+            // console.log('[STATUS] Invalid token ', err);
             return res.status(403).json({ message: 'Invalid token' });
         }
 

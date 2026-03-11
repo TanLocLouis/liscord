@@ -2,6 +2,7 @@ import AppError from '../utils/AppError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import serverServices from '../services/serverServices.js';
 import channelServices from '../services/channelServices.js';
+import { join } from 'path';
 
 type CreateServerBody = {
 	serverName: string;
@@ -51,7 +52,30 @@ const getJoinedServers = asyncHandler(async (req, res) => {
 	res.status(200).json(result);
 });
 
+const joinServer = asyncHandler(async (req, res) => {
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const userId = req.user.user_id;
+	const { serverId } = req.params;
+
+	if (!serverId || typeof serverId !== 'string') {
+		throw new AppError('Invalid server ID', 400, 'INVALID_SERVER_ID');
+	}
+
+	try {
+		await serverServices.joinServer(serverId, userId);
+	} catch (error) {
+		console.error('Error joining server:', error);
+		throw new AppError('Failed to join server', 500, 'JOIN_SERVER_FAILED');
+	}
+
+	res.status(200).json({ message: 'Joined server successfully' });
+});
+
 export default {
 	createServer,
 	getJoinedServers,
+	joinServer,
 };

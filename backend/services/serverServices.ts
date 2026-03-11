@@ -18,6 +18,14 @@ async function createServer(ownerId: string, payload: CreateServerPayload) {
 		throw new AppError('Server name is required', 400, 'INVALID_SERVER_NAME');
 	}
 
+	// Check the number of servers the user has created
+	// Set the limit in MAX_SERVERS_PER_USER environment variable
+	const MAX_SERVERS_PER_USER = parseInt(process.env.MAX_SERVERS_PER_USER || '2', 10);
+	const userServersCount = await serverModel.getUserCreatedServersCount(ownerId);
+	if (userServersCount >= MAX_SERVERS_PER_USER) {
+		throw new AppError(`You have reached the maximum limit of ${MAX_SERVERS_PER_USER} servers`, 400, 'SERVER_LIMIT_REACHED');
+	}
+
 	const serverId = randomUUID();
 
 	// Create server
@@ -52,7 +60,20 @@ async function getJoinedServers(userId: string) {
 	};
 }
 
+async function joinServer(serverId: string, userId: string) {
+	if (!serverId || !userId) {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	await serverModel.joinServer(serverId, userId);
+
+	return {
+		message: 'Joined server successfully',
+	};
+}
+
 export default {
 	createServer,
 	getJoinedServers,
+	joinServer,
 };

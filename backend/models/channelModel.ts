@@ -87,6 +87,17 @@ const channelModel = {
 		const [firstRow] = rows;
 		return firstRow?.next_position ?? 0;
 	},
+	async getChannelsPerServerCount(serverId: string): Promise<number> {
+		const [rows] = await pool.execute<RowDataPacket[]>(
+			`SELECT COUNT(*) AS channel_count
+			FROM channels
+			WHERE server_id = ?`,
+			[serverId]
+		);
+
+		const [firstRow] = rows;
+		return firstRow?.channel_count ?? 0;
+	},
 };
 
 export default channelModel;

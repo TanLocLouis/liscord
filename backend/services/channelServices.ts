@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import AppError from '../utils/AppError.js';
 import channelModel from '../models/channelModel.js';
+import serverModel from '../models/serverModel.js';
 
 type CreateChannelPayload = {
 	serverId: string;
@@ -23,6 +24,20 @@ async function createChannel(userId: string, payload: CreateChannelPayload) {
 
 	if (!normalizedChannelName) {
 		throw new AppError('Channel name is required', 400, 'INVALID_CHANNEL_NAME');
+	}
+
+	// Check does user own the server
+	const isServerOwner = await serverModel.isServerOwner(normalizedServerId, userId);
+	if (!isServerOwner) {
+		throw new AppError('Forbidden', 403, 'FORBIDDEN');
+	}
+
+	// Check the number of channel per channel the user has created
+	// Set the limit in MAX_SERVERS_PER_USER environment variable
+	const MAX_CHANNELS_PER_SERVER = parseInt(process.env.MAX_CHANNELS_PER_SERVER || '10', 10);
+	const userServersCount = await channelModel.getChannelsPerServerCount(normalizedServerId);
+	if (userServersCount >= MAX_CHANNELS_PER_SERVER) {
+		throw new AppError(`You have reached the maximum limit of ${MAX_CHANNELS_PER_SERVER} channels`, 400, 'CHANNEL_LIMIT_REACHED');
 	}
 
 	const isMember = await channelModel.isServerMember(normalizedServerId, userId);

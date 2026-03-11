@@ -1,6 +1,7 @@
 import pool from '../db/db.js';
 import type { ResultSetHeader } from 'mysql2';
 import type { RowDataPacket } from 'mysql2';
+import { join } from 'path';
 
 export type CreateServerInput = {
 	serverId: string;
@@ -72,6 +73,27 @@ const serverModel = {
 		);
 
 		return rows;
+	},
+	async joinServer(serverId: string, userId: string): Promise<ResultSetHeader> {
+		const [result] = await pool.execute<ResultSetHeader>(
+			`INSERT INTO server_members (server_id, user_id) VALUES (?, ?)`,
+			[serverId, userId]
+		);
+		return result;
+	},
+	async getUserCreatedServersCount(userId: string): Promise<number> {
+		const [rows] = await pool.execute<RowDataPacket[]>(
+			`SELECT COUNT(*) AS count FROM servers WHERE owner_id = ?`,
+			[userId]
+		);
+		return rows[0].count;
+	},
+	async isServerOwner(serverId: string, userId: string): Promise<boolean> {
+		const [rows] = await pool.execute<RowDataPacket[]>(
+			`SELECT 1 AS is_owner FROM servers WHERE server_id = ? AND owner_id = ?`,
+			[serverId, userId]
+		);
+		return rows.length > 0;
 	}
 };
 
