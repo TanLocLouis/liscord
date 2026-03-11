@@ -2,7 +2,8 @@ import Button from "@components/Button/Button.js";
 import MessageCard, { type ChatMessage } from "./MessageCard.js";
 import { useAuth } from "@contexts/AuthContext.jsx";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { io, type Socket } from "socket.io-client";
 
 type Member = {
     id: string;
@@ -25,6 +26,10 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
     const [messageInput, setMessageInput] = useState("");
     const [isSending, setIsSending] = useState(false);
     const authContext = useAuth();
+    const socketRef = useRef<Socket | null>(null);
+    const activeChannelIdRef = useRef<string | null>(null);
+
+    const toAvatar = (name: string) => `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || "U")}`;
 
     const fetchMessages = async () => {
         if (!channelInfo?.channelId) {
@@ -50,8 +55,15 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             }
 
             const data = await response.json();
-            
-            setMessages(data.messages);
+
+            const normalizedMessages = Array.isArray(data.messages)
+                ? data.messages.map((message: ChatMessage) => ({
+                    ...message,
+                    avatar: message.avatar || toAvatar(message.user_name),
+                }))
+                : [];
+
+            setMessages(normalizedMessages);
         } catch (error) {
             console.error("Error fetching messages:", error);
             setMessages([]);
@@ -62,6 +74,77 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
         fetchMessages();
     }, [channelInfo?.channelId, authContext?.accessToken]);
 
+    useEffect(() => {
+        activeChannelIdRef.current = channelInfo?.channelId ?? null;
+    }, [channelInfo?.channelId]);
+
+    useEffect(() => {
+        if (!authContext?.accessToken) {
+            socketRef.current?.disconnect();
+            socketRef.current = null;
+            return;
+        }
+
+        const socket = io(import.meta.env.VITE_API_URL, {
+            transports: ["websocket"],
+            auth: {
+                token: authContext.accessToken,
+            },
+        });
+
+        socketRef.current = socket;
+
+        socket.on("receive_message", (incomingMessage: any) => {
+            const activeChannelId = activeChannelIdRef.current;
+            if (!activeChannelId || incomingMessage?.channel_id !== activeChannelId) {
+                return;
+            }
+
+            const normalizedMessage: ChatMessage = {
+                message_id: incomingMessage.message_id,
+                user_name: incomingMessage.user_name || "Unknown User",
+                avatar: incomingMessage.avatar || toAvatar(incomingMessage.user_name || "Unknown User"),
+                created_at: incomingMessage.created_at || new Date().toISOString(),
+                content: incomingMessage.content || "",
+                mine: incomingMessage.user_name && incomingMessage.user_name === authContext.userInfo?.username,
+            };
+
+            setMessages((prev) => {
+                if (prev.some((message) => message.message_id === normalizedMessage.message_id)) {
+                    return prev;
+                }
+                return [normalizedMessage, ...prev];
+            });
+        });
+
+        socket.on("socket_error", (errorPayload: { message?: string }) => {
+            console.error("Socket error:", errorPayload?.message ?? "Unknown socket error");
+        });
+
+        socket.on("connect_error", (error: Error) => {
+            console.error("Socket connect error:", error.message);
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [authContext?.accessToken, authContext?.userInfo?.username]);
+
+    useEffect(() => {
+        const socket = socketRef.current;
+        const channelId = channelInfo?.channelId;
+
+        if (!socket || !channelId) {
+            return;
+        }
+
+        socket.emit("join_room", channelId);
+
+        return () => {
+            socket.emit("leave_room", channelId);
+        };
+    }, [channelInfo?.channelId]);
+
     const handleSendMessage = async () => {
         if (!channelInfo?.channelId || !messageInput.trim() || isSending) {
             return;
@@ -69,6 +152,19 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
 
         try {
             setIsSending(true);
+            const content = messageInput.trim();
+            const socket = socketRef.current;
+
+            if (socket?.connected) {
+                socket.emit("send_message", {
+                    roomId: channelInfo.channelId,
+                    channelId: channelInfo.channelId,
+                    content,
+                });
+
+                setMessageInput("");
+                return;
+            }
 
             const response = await fetchWithAuth(
                 authContext,
@@ -81,7 +177,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                     },
                     body: JSON.stringify({
                         channelId: channelInfo.channelId,
-                        content: messageInput.trim(),
+                        content,
                     }),
                 }
             );

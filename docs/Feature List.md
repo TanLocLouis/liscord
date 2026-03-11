@@ -4,6 +4,8 @@
 - Basic auth system.
 - Servers, channels.
 - Send text message.
+- Implement socket.io
+- Send emoji, GIF.
 - Send media (static image, gif, video)
 - Livestream room
     + Display capture
@@ -12,7 +14,7 @@
 ## Future
 - Admin Dashboard
     + Stats
-    + Admini
+    + Admin
 
 - ChatBox
     + Client => Socket Gateway => Redis => API => Database
