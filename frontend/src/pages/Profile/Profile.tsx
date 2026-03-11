@@ -4,6 +4,7 @@ import { useToast } from "@contexts/ToastContext.jsx";
 import { useAuth } from "@contexts/AuthContext.jsx";
 import EditProfile from "./EditProfile.js";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
+import { motion } from "framer-motion";
 
 interface ProfileData {
     username?: string;
@@ -111,7 +112,11 @@ const Profile: React.FC = () => {
     }
 
     return (
-        <div>
+        <motion.div
+            initial={{ transform: 'translateY(5%)', opacity: 0 }}
+            animate={{ transform: 'translateY(0)', opacity: 1 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+        >
             <div className="profile-top-section">
                 <div className="h-[250px] w-full rounded-lg bg-[radial-gradient(circle_at_10%_50%,rgba(133,132,212,0.432)_10%,transparent_30%)]">
                     <div className="relative left-[30px] top-20 flex items-center gap-4">
@@ -155,7 +160,7 @@ const Profile: React.FC = () => {
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     )
 }
 

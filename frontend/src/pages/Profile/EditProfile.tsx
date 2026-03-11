@@ -63,7 +63,7 @@ const EditProfile: React.FC<EditProfileProps> = ( { setIsEditProfileOpen }) => {
     }
 
     return (
-        <div className="fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-[rgba(0,0,0,0.5)]">
+        <div className="fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-[rgba(0,0,0,0.5)]">
             <form
                 onSubmit={handleEditProfile}
                 className="rounded-2xl border border-[var(--color-primary)] bg-[var(--color-secondary-soft)] p-6 shadow-[2px_2px_8px_var(--color-primary)]"

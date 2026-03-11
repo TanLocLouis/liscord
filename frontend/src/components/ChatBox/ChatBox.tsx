@@ -4,6 +4,7 @@ import { useAuth } from "@contexts/AuthContext.jsx";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
+import { motion } from "motion/react";
 
 type Member = {
     id: string;
@@ -203,8 +204,14 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
     };
 
     return (
+        <motion.div
+            initial={{ transform: 'translateX(5%)', opacity: 0 }}
+            animate={{ transform: 'translateX(0)', opacity: 1 }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+            className="w-full"
+        >
         <section
-            className="flex-1 min-w-0 h-[calc(100vh-80px)] m-2 rounded-[18px] border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] shadow-[0_16px_38px_color-mix(in_oklab,var(--color-text-primary)_18%,transparent)] grid grid-rows-[auto_1fr_auto] overflow-hidden bg-[radial-gradient(circle_at_10%_-10%,color-mix(in_oklab,var(--color-primary)_20%,transparent),transparent_45%),radial-gradient(circle_at_90%_0%,color-mix(in_oklab,var(--color-info)_16%,transparent),transparent_38%),color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)] max-md:mx-2 max-md:my-[0.4rem] max-md:rounded-[14px]"
+            className="flex-1 min-w-0 h-[calc(100vh-85px)] m-2 rounded-[18px] border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] shadow-[0_16px_38px_color-mix(in_oklab,var(--color-text-primary)_18%,transparent)] grid grid-rows-[auto_1fr_auto] overflow-hidden bg-[radial-gradient(circle_at_10%_-10%,color-mix(in_oklab,var(--color-primary)_20%,transparent),transparent_45%),radial-gradient(circle_at_90%_0%,color-mix(in_oklab,var(--color-info)_16%,transparent),transparent_38%),color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)] max-md:mx-2 max-md:my-[0.4rem] max-md:rounded-[14px]"
             aria-label="Chat panel"
         >
             <header className="flex justify-between items-center gap-4 px-5 py-4 border-b border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_78%,transparent)] backdrop-blur-[8px] max-md:p-[0.85rem]">
@@ -275,6 +282,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 />
             </footer>
         </section>
+        </motion.div>
     );
 };
 
