@@ -1,5 +1,5 @@
 import express from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 import serverController from '../controllers/serverController.js';
 import { authenticate } from '../middleware/authenticate.js';
 import validateData from '../middleware/validateData.js';
@@ -30,6 +30,37 @@ router.post(
 	],
 	validateData,
 	serverController.createServer
+);
+
+router.post(
+	'/:serverId/invites',
+	authenticate,
+	[
+		body('maxUses')
+			.optional()
+			.isInt({ min: 1, max: 1000000 })
+			.withMessage('maxUses must be an integer greater than 0'),
+		body('expiresInHours')
+			.optional()
+			.isInt({ min: 1, max: 24 * 365 })
+			.withMessage('expiresInHours must be between 1 and 8760'),
+	],
+	validateData,
+	serverController.createInvite
+);
+
+router.post(
+	'/invites/:code/join',
+	authenticate,
+	[
+		param('code')
+			.isString()
+			.isLength({ min: 4, max: 20 })
+			.matches(/^[A-Za-z0-9]+$/)
+			.withMessage('Invite code is invalid'),
+	],
+	validateData,
+	serverController.joinServerByInvite
 );
 
 export default router;

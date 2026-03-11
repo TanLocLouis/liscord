@@ -1,6 +1,6 @@
 import "./Login.css";
 import { type FormEvent, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useToast } from "@contexts/ToastContext";
 import { useAuth } from "@contexts/AuthContext";
 
@@ -25,6 +25,7 @@ const Login = () => {
     }
 
     const redirect = useNavigate();
+    const [searchParams] = useSearchParams();
     const { addToast } = useToast();
     const { login } = useAuth();
     const handleLoginFormSubmitted = async (e: FormEvent<HTMLFormElement>) => {
@@ -34,7 +35,9 @@ const Login = () => {
 
         if (result) {
             addToast("info", "Login successful!");
-            redirect("/");
+            const nextPath = searchParams.get("next");
+            const safeNextPath = nextPath && nextPath.startsWith("/") ? nextPath : "/";
+            redirect(safeNextPath);
         } else {
             addToast("error", "Login failed. Please check your credentials and try again.");
         }

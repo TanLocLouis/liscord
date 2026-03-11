@@ -8,6 +8,23 @@ type CreateServerPayload = {
 	serverIcon?: string;
 };
 
+type CreateInvitePayload = {
+	maxUses?: number;
+	expiresInHours?: number;
+};
+
+function generateInviteCode(length = 10): string {
+	const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+	let code = '';
+
+	for (let i = 0; i < length; i += 1) {
+		const randomIndex = Math.floor(Math.random() * chars.length);
+		code += chars[randomIndex];
+	}
+
+	return code;
+}
+
 async function createServer(ownerId: string, payload: CreateServerPayload) {
 	if (!ownerId) {
 		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
@@ -72,8 +89,91 @@ async function joinServer(serverId: string, userId: string) {
 	};
 }
 
+async function createInvite(serverId: string, userId: string, payload: CreateInvitePayload) {
+	if (!serverId || !userId) {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const isMember = await serverModel.isServerMember(serverId, userId);
+	if (!isMember) {
+		throw new AppError('You are not a member of this server', 403, 'FORBIDDEN');
+	}
+
+	const maxUses = payload.maxUses ?? null;
+	const expiresAt = payload.expiresInHours
+		? new Date(Date.now() + payload.expiresInHours * 60 * 60 * 1000)
+		: null;
+
+	let inviteCode = '';
+	for (let attempts = 0; attempts < 5; attempts += 1) {
+		const nextCode = generateInviteCode(10);
+		const existingInvite = await serverModel.getInviteByCode(nextCode);
+		if (!existingInvite) {
+			inviteCode = nextCode;
+			break;
+		}
+	}
+
+	if (!inviteCode) {
+		throw new AppError('Could not generate invite code, please try again', 500, 'INVITE_GENERATION_FAILED');
+	}
+
+	await serverModel.createInvite({
+		inviteId: randomUUID(),
+		code: inviteCode,
+		serverId,
+		createdBy: userId,
+		maxUses,
+		expiresAt,
+	});
+
+	const baseInviteUrl = process.env.FRONTEND_URL ?? process.env.APP_URL;
+	const inviteLink = baseInviteUrl
+		? `${baseInviteUrl.replace(/\/$/, '')}/invite/${inviteCode}`
+		: `/invite/${inviteCode}`;
+
+	return {
+		code: inviteCode,
+		inviteLink,
+		expiresAt: expiresAt?.toISOString() ?? null,
+		maxUses,
+	};
+}
+
+async function joinServerByInvite(code: string, userId: string) {
+	if (!code || !userId) {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	try {
+		const result = await serverModel.joinServerByInviteCode(code, userId);
+
+		return {
+			serverId: result.serverId,
+			joined: result.joined,
+			message: result.joined ? 'Joined server successfully' : 'User is already a member of this server',
+		};
+	} catch (error) {
+		if (error instanceof Error) {
+			if (error.message === 'INVITE_NOT_FOUND') {
+				throw new AppError('Invite not found', 404, 'INVITE_NOT_FOUND');
+			}
+			if (error.message === 'INVITE_EXPIRED') {
+				throw new AppError('Invite has expired', 400, 'INVITE_EXPIRED');
+			}
+			if (error.message === 'INVITE_MAX_USES_REACHED') {
+				throw new AppError('Invite has reached max uses', 400, 'INVITE_MAX_USES_REACHED');
+			}
+		}
+
+		throw error;
+	}
+}
+
 export default {
 	createServer,
 	getJoinedServers,
 	joinServer,
+	createInvite,
+	joinServerByInvite,
 };

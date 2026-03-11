@@ -13,6 +13,7 @@ import Profile from './pages/Profile/Profile'
 import ResetPassword from './pages/ResetPassword/ResetPassword'
 import ResetPasswordForm from './pages/ResetPasswordForm/ResetPasswordForm'
 import ProtectedRoute from './pages/ProtectedRoute/ProtectedRoute.jsx'
+import Invite from './pages/Invite/Invite'
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
               <Routes>
                 <Route path="/sign-up" element={<SignUp />}/>
                 <Route path="/login" element={<Login />}/>
+                <Route path="/invite/:code" element={<Invite />}/>
               </Routes>
 
               <ProtectedRoute>

@@ -85,6 +85,32 @@ CREATE TABLE `messages` (
 -- Table structure for table `server_members`
 --
 
+DROP TABLE IF EXISTS `invites`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `invites` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `code` varchar(20) NOT NULL,
+  `server_id` varchar(36) NOT NULL,
+  `created_by` varchar(36) NOT NULL,
+  `max_uses` int DEFAULT NULL,
+  `uses` int DEFAULT '0',
+  `expires_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code_UNIQUE` (`code`),
+  KEY `idx_code` (`code`),
+  KEY `idx_server` (`server_id`),
+  KEY `fk_invites_users1_idx` (`created_by`),
+  CONSTRAINT `fk_invites_servers1` FOREIGN KEY (`server_id`) REFERENCES `servers` (`server_id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_invites_users1` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `server_members`
+--
+
 DROP TABLE IF EXISTS `server_members`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;

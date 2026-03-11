@@ -2,12 +2,16 @@ import AppError from '../utils/AppError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import serverServices from '../services/serverServices.js';
 import channelServices from '../services/channelServices.js';
-import { join } from 'path';
 
 type CreateServerBody = {
 	serverName: string;
 	description?: string;
 	serverIcon?: string;
+};
+
+type CreateInviteBody = {
+	maxUses?: number;
+	expiresInHours?: number;
 };
 
 const createServer = asyncHandler(async (req, res) => {
@@ -74,8 +78,44 @@ const joinServer = asyncHandler(async (req, res) => {
 	res.status(200).json({ message: 'Joined server successfully' });
 });
 
+const createInvite = asyncHandler(async (req, res) => {
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const { serverId } = req.params;
+	if (!serverId || typeof serverId !== 'string') {
+		throw new AppError('Invalid server ID', 400, 'INVALID_SERVER_ID');
+	}
+
+	const body = req.body as Partial<CreateInviteBody>;
+	const result = await serverServices.createInvite(serverId, req.user.user_id, {
+		...(body.maxUses !== undefined ? { maxUses: body.maxUses } : {}),
+		...(body.expiresInHours !== undefined ? { expiresInHours: body.expiresInHours } : {}),
+	});
+
+	res.status(201).json(result);
+});
+
+const joinServerByInvite = asyncHandler(async (req, res) => {
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const { code } = req.params;
+	if (!code || typeof code !== 'string') {
+		throw new AppError('Invalid invite code', 400, 'INVALID_INVITE_CODE');
+	}
+
+	const result = await serverServices.joinServerByInvite(code, req.user.user_id);
+
+	res.status(200).json(result);
+});
+
 export default {
 	createServer,
 	getJoinedServers,
 	joinServer,
+	createInvite,
+	joinServerByInvite,
 };
