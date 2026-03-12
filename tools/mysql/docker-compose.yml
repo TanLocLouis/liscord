@@ -1,0 +1,15 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: liscord_db 
+    restart: unless-stopped
+    environment:
+      # Use a password you'll remember
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_DATABASE: liscord 
+      MYSQL_USER:
+      MYSQL_PASSWORD:
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data:/var/lib/mysql
