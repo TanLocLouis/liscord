@@ -13,12 +13,14 @@ This is my pet project offers group chat solution for people, friend, gaming, et
 ---
 
 # 🛠️ Technologies Used
-
+1. Developement
 - **Node.js** + **ExpressJS** – Backend server
-- **React.js** + **TypeScript** – Web frontend
+- **React.js** + **TypeScript** + **Tailwind** – Web frontend
 - **MySQL** – Relational data Storage 
 - **Scylla** - High performace read/write for message
 - **Minio** - Object Storage (banner, avatar)
+
+2. Deployment
 - **Docker** – Containerized deployment
 - **Redis** *(optional)* – Caching layer for enhanced performance
 - **GitHub CI/CD** (optional) – Automated build and deployment pipelines (Not implemented yet :D)

@@ -4,7 +4,6 @@ import { useAuth } from "@contexts/AuthContext.jsx";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
-import { motion } from "motion/react";
 
 type Member = {
     id: string;
@@ -204,12 +203,6 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
     };
 
     return (
-        <motion.div
-            initial={{ transform: 'translateX(5%)', opacity: 0 }}
-            animate={{ transform: 'translateX(0)', opacity: 1 }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-            className="w-full"
-        >
         <section
             className="flex-1 min-w-0 h-[calc(100vh-85px)] m-2 rounded-[18px] border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] shadow-[0_16px_38px_color-mix(in_oklab,var(--color-text-primary)_18%,transparent)] grid grid-rows-[auto_1fr_auto] overflow-hidden bg-[radial-gradient(circle_at_10%_-10%,color-mix(in_oklab,var(--color-primary)_20%,transparent),transparent_45%),radial-gradient(circle_at_90%_0%,color-mix(in_oklab,var(--color-info)_16%,transparent),transparent_38%),color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)] max-md:mx-2 max-md:my-[0.4rem] max-md:rounded-[14px]"
             aria-label="Chat panel"
@@ -232,7 +225,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             <div className="grid grid-cols-[1fr_50px] min-h-0 max-[1080px]:grid-cols-1">
                 <div className="min-h-0 overflow-y-auto p-[1.1rem] flex flex-col-reverse gap-3" aria-label="Message list">
                     {messages.map((message) => (
-                        <MessageCard key={message.message_id} message={message} />
+                        <MessageCard key={message.message_id} message={message}/>
                     ))}
                 </div>
 
@@ -282,7 +275,6 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 />
             </footer>
         </section>
-        </motion.div>
     );
 };
 

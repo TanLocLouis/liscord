@@ -15,7 +15,7 @@ interface MessageCardProps {
 
 const MessageCard = ({ message }: MessageCardProps) => {
     return (
-        <article
+        <div
             className={`grid grid-cols-[40px_1fr] gap-3 items-start px-[0.7rem] py-[0.6rem] border rounded-xl bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_86%,transparent)] ${
                 message.mine
                     ? "border-[color:color-mix(in_oklab,var(--color-primary)_35%,transparent)]"
@@ -36,7 +36,7 @@ const MessageCard = ({ message }: MessageCardProps) => {
                 </div>
                 <p className="mt-[0.35rem] content-[0.9rem] leading-[1.45] text-[var(--color-text-primary)]">{message.content}</p>
             </div>
-        </article>
+        </div>
     );
 };
 

@@ -14,6 +14,7 @@ import ResetPassword from './pages/ResetPassword/ResetPassword'
 import ResetPasswordForm from './pages/ResetPasswordForm/ResetPasswordForm'
 import ProtectedRoute from './pages/ProtectedRoute/ProtectedRoute.jsx'
 import Invite from './pages/Invite/Invite'
+import ServerSettings from './pages/ServerSettings/ServerSettings'
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
                   <Route path="/" element={<Navigate to="/channels/@me" replace/>} />
                   <Route path="/channels/@me" element={<Home />}/>
                   <Route path="/channels/:serverId/:channelId" element={<Home />}/>
+                  <Route path="/server/:serverId/settings" element={<ServerSettings />}/>
                 </Routes>
               </ProtectedRoute>
 

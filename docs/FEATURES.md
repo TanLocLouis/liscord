@@ -1,6 +1,6 @@
-## Liscord - Feature List
+# Project Roadmap
 
-### High Priority
+## Planned for v1.x.x
 - Basic auth system.
 - Servers, channels.
 - Send text message.
@@ -12,15 +12,12 @@
     + Using AI model (whisper) to transcribe (Japansese to English)
 - Invite link.
 
-### Medium Priority
+## Future
 - Rate limitter.
 - Limit the number of server and channel for each user.
-
-## Future
 - Admin Dashboard
     + Stats
     + Admin
-
 - ChatBox
     + Client => Socket Gateway => Redis => API => Database.
     + API => EventStream => Socket Gateway => Client.
