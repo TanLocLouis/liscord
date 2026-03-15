@@ -103,7 +103,8 @@ const Profile: React.FC = () => {
             }
 
             const data = await res.json();
-            setProfileData({ ...profileData, avatar: data.avatar });
+            const localPreviewUrl = URL.createObjectURL(file);
+            setProfileData({ ...profileData, avatar: localPreviewUrl });
             addToast("success", "Profile picture updated successfully");
         } catch (err) {
             console.error("Error uploading avatar:", err);

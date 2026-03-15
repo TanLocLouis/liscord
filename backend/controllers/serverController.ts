@@ -47,6 +47,22 @@ const createServer = asyncHandler(async (req, res) => {
 	res.status(201).json(result);
 });
 
+const getServerDetails = asyncHandler(async (req, res) => {
+	// Validate user authentication
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const { serverId } = req.params;
+	if (!serverId || typeof serverId !== 'string') {
+		throw new AppError('Invalid server ID', 400, 'INVALID_SERVER_ID');
+	}
+
+	const result = await serverServices.getServerDetails(serverId, req.user.user_id);
+
+	res.status(200).json(result);
+});
+
 const getJoinedServers = asyncHandler(async (req, res) => {
 	//  Validate user authentication
 	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
@@ -54,7 +70,6 @@ const getJoinedServers = asyncHandler(async (req, res) => {
 	}
 
 	const result = await serverServices.getJoinedServers(req.user.user_id);
-
 	res.status(200).json(result);
 });
 
@@ -163,10 +178,11 @@ const updateServerIcon = asyncHandler(async (req, res) => {
 
 export default {
 	createServer,
+	getServerDetails,
 	getJoinedServers,
 	joinServer,
-	updateServerName,
-	updateServerIcon,
 	createInvite,
 	joinServerByInvite,
+	updateServerName,
+	updateServerIcon,
 };

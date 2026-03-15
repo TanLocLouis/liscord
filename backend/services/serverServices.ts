@@ -66,6 +66,26 @@ async function createServer(ownerId: string, payload: CreateServerPayload) {
 	};
 }
 
+async function getServerDetails(serverId: string, userId: string) {
+	if (!serverId || !userId) {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+	
+	const server = await serverModel.getServerById(serverId);
+	if (!server) {
+		throw new AppError('Server not found', 404, 'SERVER_NOT_FOUND');
+	}
+	
+	const isMember = await serverModel.isServerMember(serverId, userId);
+	if (!isMember) {
+		throw new AppError('You are not a member of this server', 403, 'FORBIDDEN');
+	}
+	
+	return {
+		server,
+	};
+}
+
 async function getJoinedServers(userId: string) {
 	if (!userId) {
 		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
@@ -230,6 +250,7 @@ async function updateServerIcon(serverId: string, userId: string, iconFile: Expr
 
 export default {
 	createServer,
+	getServerDetails,
 	getJoinedServers,
 	joinServer,
 	createInvite,

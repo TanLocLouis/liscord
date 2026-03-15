@@ -7,9 +7,7 @@ import { iconUploadMiddleware } from '../middleware/avatarUploadMiddleware.js';
 
 const router = express.Router();
 
-router.get('/joined', authenticate, serverController.getJoinedServers);
-
-// GET /api/servers/:serverId
+// POST /api/servers
 router.post(
 	'/',
 	authenticate,
@@ -33,6 +31,13 @@ router.post(
 	validateData,
 	serverController.createServer
 );
+
+// GET /api/servers/joined
+router.get('/joined', authenticate, serverController.getJoinedServers);
+
+// GET /api/servers/:serverId
+router.get('/:serverId', authenticate, serverController.getServerDetails);
+
 
 // POST /api/servers/:serverId/invites
 router.post(
@@ -66,7 +71,6 @@ router.post(
 	validateData,
 	serverController.joinServerByInvite
 );
-
 
 // PATCH /api/server/<serverId>/name
 router.patch('/:serverId/name',

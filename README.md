@@ -2,9 +2,10 @@
 
 This is my pet project offers group chat solution for people, friend, gaming, etc like **Discord**.
 
-# Feature Overview
+# Features Overview
 1. What has been done
-- Create Server and Channel for real-time chat.
+- Create, manage Server and Channel.
+- Real-time chat.
 - Invite people with invite link.
 - Create account, manage account.
 
