@@ -3,11 +3,13 @@ import { body, param } from 'express-validator';
 import serverController from '../controllers/serverController.js';
 import { authenticate } from '../middleware/authenticate.js';
 import validateData from '../middleware/validateData.js';
+import { iconUploadMiddleware } from '../middleware/avatarUploadMiddleware.js';
 
 const router = express.Router();
 
 router.get('/joined', authenticate, serverController.getJoinedServers);
 
+// GET /api/servers/:serverId
 router.post(
 	'/',
 	authenticate,
@@ -32,6 +34,7 @@ router.post(
 	serverController.createServer
 );
 
+// POST /api/servers/:serverId/invites
 router.post(
 	'/:serverId/invites',
 	authenticate,
@@ -49,6 +52,7 @@ router.post(
 	serverController.createInvite
 );
 
+// POST /api/servers/invites/:code/join
 router.post(
 	'/invites/:code/join',
 	authenticate,
@@ -61,6 +65,33 @@ router.post(
 	],
 	validateData,
 	serverController.joinServerByInvite
+);
+
+
+// PATCH /api/server/<serverId>/name
+router.patch('/:serverId/name',
+    authenticate,
+	[
+		param('serverId')
+			.isString()
+			.trim()
+			.isLength({ min: 36, max: 36 })
+			.withMessage('Server ID is required'),
+		body('serverName')
+			.isString()
+			.trim()
+			.isLength({ min: 1, max: 255 })
+			.withMessage('Server name is required and must be less than 256 characters'),
+	],
+	validateData,
+    serverController.updateServerName
+);
+
+// PATCH /api/server/<serverId>/icon
+router.patch('/:serverId/icon',
+    authenticate,
+    iconUploadMiddleware,
+    serverController.updateServerIcon
 );
 
 export default router;

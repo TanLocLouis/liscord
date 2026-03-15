@@ -211,7 +211,42 @@ const serverModel = {
 		} finally {
 			conn.release();
 		}
-	}
+	},
+	async getServerById(serverId: string): Promise<any | null> {
+		const [rows] = await pool.execute<any>(
+			`SELECT
+				server_id,
+				server_name,
+				description,
+				server_icon,
+				members_count,
+				owner_id,
+				created_at
+			FROM servers
+			WHERE server_id = ?`,
+			[serverId]
+		);
+
+		if (rows.length === 0) {
+			return null;
+		}
+
+		return rows[0] ?? null;
+	},
+	async updateServerName(serverId: string, newName: string): Promise<ResultSetHeader> {
+		const [result] = await pool.execute<ResultSetHeader>(
+			`UPDATE servers SET server_name = ? WHERE server_id = ?`,
+			[newName, serverId]
+		);
+		return result;
+	},
+	async updateServerIcon(serverId: string, newIcon: string): Promise<ResultSetHeader> {
+		const [result] = await pool.execute<ResultSetHeader>(
+			`UPDATE servers SET server_icon = ? WHERE server_id = ?`,
+			[newIcon, serverId]
+		);
+		return result;
+	},
 };
 
 export default serverModel;

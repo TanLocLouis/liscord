@@ -18,6 +18,7 @@ const ServerSettings: React.FC = () => {
     }
 
     const handleAvatarClick = () => {
+        fileInputRef.current?.click();
     }
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {

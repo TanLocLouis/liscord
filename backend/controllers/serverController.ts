@@ -15,6 +15,7 @@ type CreateInviteBody = {
 };
 
 const createServer = asyncHandler(async (req, res) => {
+	// Validate user authentication
 	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
 		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
 	}
@@ -47,6 +48,7 @@ const createServer = asyncHandler(async (req, res) => {
 });
 
 const getJoinedServers = asyncHandler(async (req, res) => {
+	//  Validate user authentication
 	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
 		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
 	}
@@ -57,6 +59,7 @@ const getJoinedServers = asyncHandler(async (req, res) => {
 });
 
 const joinServer = asyncHandler(async (req, res) => {
+	// Validate user authentication
 	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
 		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
 	}
@@ -79,6 +82,7 @@ const joinServer = asyncHandler(async (req, res) => {
 });
 
 const createInvite = asyncHandler(async (req, res) => {
+	// Validate user authentication
 	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
 		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
 	}
@@ -98,6 +102,7 @@ const createInvite = asyncHandler(async (req, res) => {
 });
 
 const joinServerByInvite = asyncHandler(async (req, res) => {
+	// Validate user authentication
 	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
 		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
 	}
@@ -112,10 +117,56 @@ const joinServerByInvite = asyncHandler(async (req, res) => {
 	res.status(200).json(result);
 });
 
+const updateServerName = asyncHandler(async (req, res) => {
+	// Validate user authentication
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	// Validate server ID
+	const { serverId } = req.params;
+	if (!serverId || typeof serverId !== 'string') {
+		throw new AppError('Invalid server ID', 400, 'INVALID_SERVER_ID');
+	}
+
+	// Validate server name
+	const { serverName } = req.body as { serverName?: string };
+	if (!serverName || typeof serverName !== 'string' || serverName.length > 100) {
+		throw new AppError('Invalid server name', 400, 'INVALID_SERVER_NAME');
+	}
+	await serverServices.updateServerName(serverId, req.user.user_id, serverName);
+
+	res.status(200).json({ message: 'Server name updated successfully' });
+});
+
+const updateServerIcon = asyncHandler(async (req, res) => {
+	// Validate user authentication
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	// Validate server ID
+	const { serverId } = req.params;
+	if (!serverId || typeof serverId !== 'string') {
+		throw new AppError('Invalid server ID', 400, 'INVALID_SERVER_ID');
+	}
+
+	// Validate that a file was uploaded
+	if (!req.file) {
+		throw new AppError('No avatar file uploaded', 400, 'NO_AVATAR_UPLOADED');
+	}
+
+	await serverServices.updateServerIcon(serverId, req.user.user_id, req.file);
+
+	res.status(200).json({ message: 'Server icon updated successfully' });
+});
+
 export default {
 	createServer,
 	getJoinedServers,
 	joinServer,
+	updateServerName,
+	updateServerIcon,
 	createInvite,
 	joinServerByInvite,
 };

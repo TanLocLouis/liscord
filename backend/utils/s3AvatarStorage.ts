@@ -62,6 +62,32 @@ async function uploadAvatarToS3({ userId, fileBuffer, mimeType }: UploadAvatarIn
     return `${normalizedEndpoint}/${awsBucket}/${objectKey}`;
 }
 
+async function uploadIconToS3({ userId, fileBuffer, mimeType }: UploadAvatarInput): Promise<string> {
+    if (!awsBucket) {
+        throw new AppError('AWS S3 is not configured', 500, 'AWS_S3_NOT_CONFIGURED');
+    }
+
+    const extension = extensionByMimeType[mimeType] || 'bin';
+    const uniqueSuffix = crypto.randomUUID();
+    const keyPrefix = process.env.AWS_S3_ICON_PREFIX || 'icons';
+    const objectKey = `${keyPrefix}/${userId}-${uniqueSuffix}.${extension}`;
+
+    try {
+        await s3Client.send(new PutObjectCommand({
+            Bucket: awsBucket,
+            Key: objectKey,
+            Body: fileBuffer,
+            ContentType: mimeType,
+        }));
+    } catch (error) {
+        console.error('[ERROR] Failed uploading icon to S3', error);
+        throw new AppError('Failed to upload icon', 502, 'S3_UPLOAD_FAILED');
+    }
+
+    const normalizedEndpoint = s3Endpoint.endsWith('/') ? s3Endpoint.slice(0, -1) : s3Endpoint;
+    return `${normalizedEndpoint}/${awsBucket}/${objectKey}`;
+}
 export {
     uploadAvatarToS3,
+    uploadIconToS3,
 };

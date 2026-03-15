@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import AppError from '../utils/AppError.js';
 import serverModel from '../models/serverModel.js';
+import { uploadAvatarToS3, uploadIconToS3 } from '../utils/s3AvatarStorage.js';
 
 type CreateServerPayload = {
 	serverName: string;
@@ -170,10 +171,69 @@ async function joinServerByInvite(code: string, userId: string) {
 	}
 }
 
+async function updateServerName(serverId: string, userId: string, newName: string) {
+	if (!serverId || !userId) {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const normalizedServerName = newName.trim();
+	if (!normalizedServerName) {
+		throw new AppError('Server name is required', 400, 'INVALID_SERVER_NAME');
+	}
+
+	const server = await serverModel.getServerById(serverId);
+	if (!server) {
+		throw new AppError('Server not found', 404, 'SERVER_NOT_FOUND');
+	}
+
+	if (server.owner_id !== userId) {
+		throw new AppError('Only the server owner can update the server name', 403, 'FORBIDDEN');
+	}
+
+	await serverModel.updateServerName(serverId, normalizedServerName);
+
+	return {
+		message: 'Server name updated successfully',
+	};
+}
+
+async function updateServerIcon(serverId: string, userId: string, iconFile: Express.Multer.File) {
+	if (!serverId || !userId) {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	// Check does the server exist
+	const server = await serverModel.getServerById(serverId);
+	if (!server) {
+		throw new AppError('Server not found', 404, 'SERVER_NOT_FOUND');
+	}
+
+	// Check is the user the owner of the server
+	if (server.owner_id !== userId) {
+		throw new AppError('Only the server owner can update the server icon', 403, 'FORBIDDEN');
+	}
+
+	// Upload icon to S3 and get the URL
+    const iconUrl = await uploadIconToS3({
+        userId,
+        fileBuffer: iconFile.buffer,
+        mimeType: iconFile.mimetype,
+    });
+
+	await serverModel.updateServerIcon(serverId, iconUrl);
+
+	return {
+		message: 'Server icon updated successfully',
+	};
+
+}
+
 export default {
 	createServer,
 	getJoinedServers,
 	joinServer,
 	createInvite,
 	joinServerByInvite,
+	updateServerName,
+	updateServerIcon,
 };
