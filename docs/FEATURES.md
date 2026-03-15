@@ -23,3 +23,4 @@
     + API => EventStream => Socket Gateway => Client.
     + Using WebSocket to send/receive data.
     + Using Redis as Event Stream.
+- Implement E2EE to message.

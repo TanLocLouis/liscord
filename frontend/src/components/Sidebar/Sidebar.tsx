@@ -76,7 +76,7 @@ const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververIn
                 <ul className="overflow-y-auto">
                     {serverList.map((server) => (
                         <li onContextMenu={(e) => openMenu(e, server.server_id)} key={server.server_id} onClick={() => handleServerClicked(server.server_name, server.server_id)}>
-                            <div className={`w-10 h-10 flex justify-center items-center m-0.5 mt-3 border-2 rounded-lg border-[var(--color-text-primary)] hover:scale-105 hover:bg-[var(--color-primary)] hover:shadow-[0_2px_10px_rgba(255,255,255,0.5)] transition-all duration-200 ${serverInfo.currentServerId === server.server_id ? 'bg-[var(--color-primary)]' : ''}`}>
+                            <div className={`w-10 h-10 flex justify-center items-center m-0.5 mt-3 border-2 rounded-lg border-[var(--color-text-primary)] hover:scale-105 hover:bg-[var(--color-primary)] hover:shadow-[0_0_5px_5px_var(--color-primary)] transition-all duration-200 ${serverInfo.currentServerId === server.server_id ? 'bg-[var(--color-primary)]' : ''}`}>
                                 {server.server_icon ? (
                                     <img src={server.server_icon} alt={server.server_name} className="w-full h-full object-cover rounded-lg" />
                                 ) : (

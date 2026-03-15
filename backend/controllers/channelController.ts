@@ -44,7 +44,27 @@ const getServerChannels = asyncHandler(async (req, res) => {
 	res.status(200).json(result);
 });
 
+const renameChannel = asyncHandler(async (req, res) => {
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const channelId = req.params.channelId;
+	const newName = req.body.newName;
+
+	if (!channelId || typeof channelId !== 'string') {
+		throw new AppError('Channel id is required', 400, 'INVALID_CHANNEL_ID');
+	}
+	if (!newName || typeof newName !== 'string') {
+		throw new AppError('New channel name is required', 400, 'INVALID_NEW_NAME');
+	}
+
+	const result = await channelServices.renameChannel(req.user.user_id, channelId, newName);
+	res.status(200).json(result);
+});
+
 export default {
 	createChannel,
 	getServerChannels,
+	renameChannel,
 };

@@ -48,4 +48,24 @@ router.post(
 	channelController.createChannel
 );
 
+// PATCH /api/channels/:channelId/name
+router.patch(
+	'/:channelId/name',
+	authenticate,
+	[
+		param('channelId')
+			.isString()
+			.trim()
+			.isLength({ min: 1, max: 36 })
+			.withMessage('Channel id is required'),
+		body('newName')
+			.isString()
+			.trim()
+			.isLength({ min: 1, max: 255 })
+			.withMessage('New channel name is required and must be less than 256 characters'),
+	],
+	validateData,
+	channelController.renameChannel
+);
+
 export default router;

@@ -2,9 +2,9 @@
 import { useState, useEffect } from "react";
 import CreateChannel from "./CreateChannel.js";
 import CreateInvite from './CreateInvite.js';
+import ChannelCard from "./ChannelCard.js";
 import { useAuth } from "@contexts/AuthContext.js";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
-import { motion } from "motion/react"
 
 interface Channel {
     channel_id: string;
@@ -86,11 +86,13 @@ const SidebarChannels = ( { serverInfo, onChannelInfoChanged } : SidebarChannels
                 <label>{channelsList.length === 0 ? "No channels available" : ""}</label>
                 <ul className="mt-2 mb-1 flex flex-col gap-2">
                     {channelsList.map((channel) => (
-                        <li key={channel.channel_id} onClick={() => handleChannelClicked(channel.channel_name, channel.channel_id)} className="">
-                            <div className={`p-1 border rounded hover:bg-[var(--color-primary)] cursor-pointer ${currentChannelId === channel.channel_id ? 'bg-[var(--color-primary)] border rounded' : ''}`}>
-                                <label className="text-[var(--color-text-primary)]"># {channel.channel_name}</label>
-                            </div>
-                        </li>
+                        <ChannelCard
+                            key={channel.channel_id}
+                            channelId={channel.channel_id}
+                            channelName={channel.channel_name}
+                            isActive={currentChannelId === channel.channel_id}
+                            onClick={handleChannelClicked}
+                        />
                     ))}
 
                     <hr className="border-[var(--color-text-primary)] my-2"></hr>

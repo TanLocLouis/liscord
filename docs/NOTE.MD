@@ -1,4 +1,6 @@
-## Problem
+# Problem
+## This file log problems that I have encounterd on developing Liscord
+
 - Trade-off
     + Store user_name in message: no need to join for each message, but what if user change thier user_name? The message still show old user_name
     + Store user_name separately: need to join for every message, but user_name will be newest.
@@ -15,3 +17,5 @@
 
 - Minio Docker Container works like AWS S3
     + Avatar bucket should set Public Object, Private Bucket.
+
+- useEffect render after component mount, so If I want to focus the conditional input, put it in useEffect.

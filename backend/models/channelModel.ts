@@ -1,6 +1,7 @@
 import pool from '../db/db.js';
 import type { ResultSetHeader, RowDataPacket } from 'mysql2';
 import client from '../db/scylla.js';
+import { rename } from 'node:fs';
 
 export type CreateChannelInput = {
 	channelId: string;
@@ -47,6 +48,23 @@ const channelModel = {
 		);
 
 		return result;
+	},
+	async getChannelById(channelId: string): Promise<Channel | null> {
+		const [rows] = await pool.execute<Channel[]>(
+			`SELECT
+				channel_id,
+				channel_name,
+				type,
+				position,
+				created_at,
+				server_id
+			FROM channels
+			WHERE channel_id = ?`,
+			[channelId]
+		);
+
+		const [firstRow] = rows;
+		return firstRow || null;
 	},
 	async getChannelsByServerId(serverId: string): Promise<Channel[]> {
 		const [rows] = await pool.execute<Channel[]>(
@@ -97,6 +115,16 @@ const channelModel = {
 
 		const [firstRow] = rows;
 		return firstRow?.channel_count ?? 0;
+	},
+	async renameChannel(channelId: string, newName: string): Promise<ResultSetHeader> {
+		const [result] = await pool.execute<ResultSetHeader>(
+			`UPDATE channels
+			SET channel_name = ?
+			WHERE channel_id = ?`,
+			[newName, channelId]
+		);
+
+		return result;
 	},
 };
 
