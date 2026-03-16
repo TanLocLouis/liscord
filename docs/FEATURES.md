@@ -1,16 +1,17 @@
 # Project Roadmap
 
 ## Planned for v1.x.x
-- Basic auth system.
-- Servers, channels.
-- Send text message.
-- Implement socket.io
+- ✅ Basic auth system.
+- ✅ Servers, channels.
+- ✅ Send text message.
+- ✅ Implement socket.io
 - Send emoji, GIF.
 - Send media (static image, gif, video).
 - Livestream room
     + Display capture
     + Using AI model (whisper) to transcribe (Japansese to English)
-- Invite link.
+- ✅ Invite link.
+- Push notification for message.
 
 ## Future
 - Rate limitter.
