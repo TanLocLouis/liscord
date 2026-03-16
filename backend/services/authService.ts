@@ -90,6 +90,7 @@ async function login(username: string, password: string) {
     const accessToken = jwtUtils.generateAccessToken({user_id: user.user_id, username: user.username });
 
     const userData = {
+        user_id: user.user_id,
         username: user.username,
         email: user.email,
         isActive: user.is_active

@@ -15,6 +15,7 @@ import ResetPasswordForm from './pages/ResetPasswordForm/ResetPasswordForm'
 import ProtectedRoute from './pages/ProtectedRoute/ProtectedRoute.jsx'
 import Invite from './pages/Invite/Invite'
 import ServerSettings from './pages/ServerSettings/ServerSettings'
+import UserProfile from './pages/UserProfile/UserProfile'
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
                 <Route path="/sign-up" element={<SignUp />}/>
                 <Route path="/login" element={<Login />}/>
                 <Route path="/invite/:code" element={<Invite />}/>
+                <Route path="/users/:userId" element={<UserProfile />}/>
               </Routes>
 
               <ProtectedRoute>

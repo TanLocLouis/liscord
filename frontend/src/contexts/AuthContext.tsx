@@ -121,7 +121,7 @@ const AuthProvider = ( { children }: { children: React.ReactNode } ) => {
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("userInfo");
 
-        addToast("info", "Logged out successfully.");
+        addToast("success", "Logged out successfully.");
     }
 
     const value = {

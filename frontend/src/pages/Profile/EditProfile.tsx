@@ -7,69 +7,80 @@ import { fetchWithAuth } from "@utils/fetchWithAuth";
 
 interface EditProfileProps {
     setIsEditProfileOpen: (open: boolean) => void;
+    currentBio?: string | undefined;
 }
 
-interface EditFormData {
+interface PasswordFormData {
     currentPassword?: string;
     newPassword?: string;
     confirmNewPassword?: string;
 }
 
+const EditProfile: React.FC<EditProfileProps> = ({ setIsEditProfileOpen, currentBio }) => {
+    const authContext = useAuth();
+    const { addToast } = useToast();
 
-const EditProfile: React.FC<EditProfileProps> = ( { setIsEditProfileOpen }) => {
     const handleCloseEditProfileClicked = (e: MouseEvent<SVGSVGElement>) => {
         e.preventDefault();
         setIsEditProfileOpen(false);
-    }
+    };
 
-    const [Data, setData] = useState<EditFormData>({});
-    const handleFormChanged = (e: ChangeEvent<HTMLInputElement>) => {
-        setData({
-            ...Data,
-            [e.target.name]: e.target.value
-        });
-    }
+    // Bio
+    const [bio, setBio] = useState<string>(currentBio ?? "");
 
-    const authContext  = useAuth();
-    const { addToast } = useToast();
-    const handleEditProfile = async (e: FormEvent<HTMLFormElement>) => {
+    const handleBioSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        try {
+            const res = await fetchWithAuth(authContext, `${import.meta.env.VITE_API_URL}/api/users/bio`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ bio }),
+            });
+            if (!res.ok) throw new Error("Failed to update bio");
+            addToast("success", "Bio updated successfully.");
+        } catch (err) {
+            console.error("Error updating bio:", err);
+            addToast("error", "Failed to update bio.");
+        }
+    };
 
-        // Validate new password
-        if (Data.newPassword !== Data.confirmNewPassword) {
+    // Password
+    const [passwordData, setPasswordData] = useState<PasswordFormData>({});
+
+    const handlePasswordChanged = (e: ChangeEvent<HTMLInputElement>) => {
+        setPasswordData({ ...passwordData, [e.target.name]: e.target.value });
+    };
+
+    const handlePasswordSubmit = async (e: FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (passwordData.newPassword !== passwordData.confirmNewPassword) {
             addToast("error", "New password and confirm new password do not match");
             return;
         }
-
         try {
             const res = await fetchWithAuth(authContext, `${import.meta.env.VITE_API_URL}/api/users/password`, {
                 method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    currentPassword: Data.currentPassword,
-                    newPassword: Data.newPassword,
+                    currentPassword: passwordData.currentPassword,
+                    newPassword: passwordData.newPassword,
                 }),
             });
-
-            if (!res.ok) {
-                throw new Error("Failed to update profile");
-            }
+            if (!res.ok) throw new Error("Failed to update password");
+            addToast("success", "Password updated successfully.");
+            setPasswordData({});
         } catch (err) {
-            console.error("Error updating profile:", err);
-            addToast("error", "Failed to update profile.");
+            console.error("Error updating password:", err);
+            addToast("error", "Failed to update password.");
         }
-    }
+    };
 
     return (
-        <div className="fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-[rgba(0,0,0,0.5)]">
-            <form
-                onSubmit={handleEditProfile}
-                className="rounded-2xl border border-[var(--color-primary)] bg-[var(--color-secondary-soft)] p-6 shadow-[2px_2px_8px_var(--color-primary)]"
-            >
-                <div className="mb-2 flex items-center justify-center gap-2">
-                    <h2>Create new password</h2> 
+        <div className="left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-[rgba(0,0,0,0.5)]">
+            <div className="w-full max-w-md rounded-2xl border border-[var(--color-primary)] bg-[var(--color-secondary-soft)] p-6 shadow-[2px_2px_8px_var(--color-primary)]">
+                {/* Header */}
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-lg font-semibold">Edit Profile</h2>
                     <svg
                         onClick={handleCloseEditProfileClicked}
                         className="cursor-pointer transition-transform duration-150 hover:scale-110"
@@ -82,44 +93,63 @@ const EditProfile: React.FC<EditProfileProps> = ( { setIsEditProfileOpen }) => {
                     </svg>
                 </div>
 
-                <div className="flex flex-col">
-                        <label className="ml-1">Current Password</label>
+                {/* Bio section */}
+                <form onSubmit={handleBioSubmit} className="mb-4">
+                    <h3 className="mb-2 font-medium">Bio</h3>
+                    <textarea
+                        className="w-full resize-none rounded-lg border border-[var(--color-primary)] bg-transparent p-2 focus:outline-none"
+                        rows={3}
+                        maxLength={200}
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        placeholder="Tell us about yourself..."
+                    />
+                    <Button type="submit" margin="0.5em 0 0 0" title="Save Bio"></Button>
+                </form>
+
+                <hr className="mb-1 border-[var(--color-primary)] opacity-30" />
+
+                {/* Password section */}
+                <form onSubmit={handlePasswordSubmit}>
+                    <h3 className="mb-1 font-medium">Change Password</h3>
+                    <div className="flex flex-col">
+                        <label className="ml-2">Current Password</label>
                         <input
-                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)]"
+                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)] h-[40px]"
                             type="password"
                             name="currentPassword"
-                            onChange={handleFormChanged}
+                            value={passwordData.currentPassword ?? ""}
+                            onChange={handlePasswordChanged}
                             required
                         />
-                </div>
-                <div className="flex flex-col">
-                        <label className="ml-1">New Password</label>
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="ml-2">New Password</label>
                         <input
-                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)]"
+                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)] h-[40px]"
                             type="password"
                             name="newPassword"
-                            onChange={handleFormChanged}
+                            value={passwordData.newPassword ?? ""}
+                            onChange={handlePasswordChanged}
                             required
                         />
-                </div>
-                <div className="flex flex-col">
-                        <label className="ml-1">Confirm New Password</label>
+                    </div>
+                    <div className="flex flex-col">
+                        <label className="ml-2">Confirm New Password</label>
                         <input
-                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)]"
+                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)] h-[40px]" 
                             type="password"
                             name="confirmNewPassword"
-                            onChange={handleFormChanged}
+                            value={passwordData.confirmNewPassword ?? ""}
+                            onChange={handlePasswordChanged}
                             required
                         />
-                </div>
-
-                <Button type="submit" 
-                        className="edit-profile-submit-button"
-                        title="Change Password"
-                >Update Password</Button> 
-            </form>
+                    </div>
+                    <Button type="submit" className="w-full" title="Update Password"></Button>
+                </form>
+            </div>
         </div>
-    )
-}
+    );
+};
 
 export default EditProfile;

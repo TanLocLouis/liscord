@@ -5,14 +5,14 @@ import AppError from '../utils/AppError.js';
 const authenticate: RequestHandler = (req, res, next) => {
     const authHeader = req.headers['authorization'];
 
-    if (!authHeader) {
-        return next(); // No token provided, proceed as guest
-    }
+    // if (!authHeader) {
+    //     return next(); // No token provided, proceed as guest
+    // }
 
     const token = authHeader.split(' ')[1];
-    if (!token) {
-        return next(); // No token provided, proceed as guest
-    }
+    // if (!token) {
+    //     return next(); // No token provided, proceed as guest
+    // }
     
     const jwtSecret = process.env.JWT_ACCESS_TOKEN_SECRET;
     if (!jwtSecret) {

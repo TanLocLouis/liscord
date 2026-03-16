@@ -60,7 +60,7 @@ const CreateServer = (props: CreateServerProps) => {
                 throw new Error(errorData?.message || "Failed to create server");
             }
 
-            addToast("info", "Server created successfully.");
+            addToast("success", "Server created successfully.");
             props.setIsCreateServerOpen(false);
             redirect("/");
         } catch (err) {

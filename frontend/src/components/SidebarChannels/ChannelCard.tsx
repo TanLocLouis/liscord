@@ -37,6 +37,16 @@ const ChannelCard = ({ channelId, channelName, isActive, onClick }: ChannelCardP
         e.stopPropagation();
         setIsEditing(false);
 
+        if (newChannelName.trim() === "") {
+            addToast('error', 'Channel name cannot be empty');
+            return;
+        }
+
+        if (newChannelName === channelName) {
+            addToast('info', 'Channel name is unchanged');
+            return;
+        }
+        
         try {
             const response = await fetchWithAuth(authContext, `${import.meta.env.VITE_API_URL}/api/channels/${channelId}/name`, {
                 method: 'PATCH',

@@ -28,6 +28,10 @@
     width: 300px;
 }
 
+.toast-success {
+    background-color: var(--color-success);
+}
+
 .toast-info {
     background-color: var(--color-info);
 }

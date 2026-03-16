@@ -7,13 +7,21 @@ type UpdatePasswordBody = {
     newPassword: string;
 };
 
-const getUserProfile = asyncHandler(async (req, res) => {
-    const userIdParam = req.params.id;
-    const userId = Array.isArray(userIdParam) ? userIdParam[0] : userIdParam;
-    if (!userId) {
+const getMyProfile = asyncHandler(async (req, res) => {
+    const user_id = req.user?.user_id;
+    if (!user_id) {
         throw new AppError('No user id provided', 400, 'NO_USER_ID');
     }
-    const userProfile = await usersService.getUserProfile(userId);
+    const userProfile = await usersService.getMyProfile(user_id);
+    res.status(200).json({ user: userProfile });
+});
+
+const getUserProfile = asyncHandler(async (req, res) => {
+    const user_id = req.params.user_id;
+    if (!user_id) {
+        throw new AppError('No user id provided', 400, 'NO_USER_ID');
+    }
+    const userProfile = await usersService.getUserProfile(user_id);
     res.status(200).json({ user: userProfile });
 });
 
@@ -46,8 +54,26 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Avatar updated successfully', avatarUrl });
 });
 
+type UpdateBioBody = {
+    bio: string;
+};
+
+const updateUserBio = asyncHandler(async (req, res) => {
+    if (!req.user?.username) {
+        throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+    }
+    const body = req.body as Partial<UpdateBioBody>;
+    if (typeof body.bio !== 'string') {
+        throw new AppError('No bio provided', 400, 'NO_DATA_PROVIDED');
+    }
+    await usersService.updateUserBio(req.user.username, body.bio);
+    res.status(200).json({ message: 'Bio updated successfully' });
+});
+
 export default {
+    getMyProfile,
     getUserProfile,
     updateUserPassword,
     updateUserAvatar,
+    updateUserBio,
 }

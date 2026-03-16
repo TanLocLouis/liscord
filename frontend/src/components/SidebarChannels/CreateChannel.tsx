@@ -65,7 +65,7 @@ const CreateChannel = (props: CreateChannelProps) => {
                 throw new Error(errorData?.message || "Failed to create channel");
             }
 
-            addToast("info", "Channel created successfully.");
+            addToast("success", "Channel created successfully.");
             props.setIsCreateChannelOpen(false);
         } catch (err) {
             console.error("Create channel error: ", err);

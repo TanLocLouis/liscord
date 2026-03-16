@@ -13,9 +13,16 @@ type UserPasswordRow = RowDataPacket & {
 };
 
 const usersModel = {
+    async getMyProfile(userId: string): Promise<UserProfileRow | null> {
+        const [rows] = await pool.execute<UserProfileRow[]>(
+            'SELECT username, email, avatar, created_at, is_active, bio FROM users WHERE user_id = ? LIMIT 1',
+            [userId]
+        );
+        return rows[0] || null;
+    },
     async getUserProfile(userId: string): Promise<UserProfileRow | null> {
         const [rows] = await pool.execute<UserProfileRow[]>(
-            'SELECT username, email, avatar, created_at, is_active FROM users WHERE username = ? LIMIT 1',
+            'SELECT username, avatar, created_at, is_active, bio FROM users WHERE user_id = ? LIMIT 1',
             [userId]
         );
         return rows[0] || null;
@@ -53,6 +60,13 @@ const usersModel = {
         const [result] = await pool.execute<ResultSetHeader>(
             'UPDATE users SET avatar = ? WHERE username = ?',
             [avatarUrl, userId]
+        );
+        return result.affectedRows > 0;
+    },
+    async updateUserBio(userId: string, bio: string): Promise<boolean> {
+        const [result] = await pool.execute<ResultSetHeader>(
+            'UPDATE users SET bio = ? WHERE username = ?',
+            [bio, userId]
         );
         return result.affectedRows > 0;
     }

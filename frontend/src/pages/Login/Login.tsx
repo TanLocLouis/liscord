@@ -35,7 +35,7 @@ const Login = () => {
         const result = await login(LoginForm);
 
         if (result) {
-            addToast("info", "Login successful!");
+            addToast("success", "Login successful!");
             const nextPath = searchParams.get("next");
             const safeNextPath = nextPath && nextPath.startsWith("/") ? nextPath : "/";
             redirect(safeNextPath);

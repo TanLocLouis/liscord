@@ -4,6 +4,14 @@ import AppError from "../utils/AppError.js";
 import { uploadAvatarToS3 } from '../utils/s3AvatarStorage.js';
 import type { Express } from 'express';
 
+async function getMyProfile(userId: string) {
+    const user = await usersModel.getMyProfile(userId);
+    if (!user) {
+        throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+    }
+    return user;
+}
+
 async function getUserProfile(userId: string) {
     const user = await usersModel.getUserProfile(userId);
     if (!user) {
@@ -53,8 +61,22 @@ async function updateUserAvatar(userId: string, avatarFile: Express.Multer.File)
     return avatarUrl;
 }
 
+async function updateUserBio(userId: string, bio: string) {
+    const user = await usersModel.getUserProfile(userId);
+    if (!user) {
+        throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+    }
+    const updated = await usersModel.updateUserBio(userId, bio);
+    if (!updated) {
+        throw new AppError('Failed to update bio', 500, 'BIO_UPDATE_FAILED');
+    }
+    return updated;
+}
+
 export default {
+    getMyProfile,
     getUserProfile,
     updateUserPassword,
     updateUserAvatar,
+    updateUserBio,
 }

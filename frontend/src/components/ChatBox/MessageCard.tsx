@@ -1,4 +1,5 @@
 import timeAgo from "@utils/timeAgo.js";
+import { useNavigate } from "react-router";
     
 export type ChatMessage = {
     message_id: string;
@@ -14,6 +15,11 @@ interface MessageCardProps {
 }
 
 const MessageCard = ({ message }: MessageCardProps) => {
+    const redirect = useNavigate();
+    const handleOpenUserProfile = () => {
+        redirect(`/users/${message.user_id}`);
+    }
+
     return (
         <div
             className={`grid grid-cols-[40px_1fr] gap-3 items-start px-[0.7rem] py-[0.6rem] border rounded-xl bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_86%,transparent)] ${
@@ -27,6 +33,7 @@ const MessageCard = ({ message }: MessageCardProps) => {
                 aria-hidden="true"
                 src={message.avatar}
                 alt={`${message.user_name}'s avatar`}
+                onClick={handleOpenUserProfile}
             />
 
             <div>
