@@ -58,14 +58,14 @@ const usersModel = {
     },
     async updateUserAvatar(userId: string, avatarUrl: string): Promise<boolean> {
         const [result] = await pool.execute<ResultSetHeader>(
-            'UPDATE users SET avatar = ? WHERE username = ?',
+            'UPDATE users SET avatar = ? WHERE user_id = ?',
             [avatarUrl, userId]
         );
         return result.affectedRows > 0;
     },
     async updateUserBio(userId: string, bio: string): Promise<boolean> {
         const [result] = await pool.execute<ResultSetHeader>(
-            'UPDATE users SET bio = ? WHERE username = ?',
+            'UPDATE users SET bio = ? WHERE user_id = ?',
             [bio, userId]
         );
         return result.affectedRows > 0;

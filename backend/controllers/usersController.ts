@@ -42,7 +42,7 @@ const updateUserPassword = asyncHandler(async (req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
-    if (!req.user?.username) {
+    if (!req.user?.user_id) {
         throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
     }
 
@@ -50,7 +50,7 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new AppError('No avatar file provided', 400, 'NO_AVATAR_FILE');
     }
 
-    const avatarUrl = await usersService.updateUserAvatar(req.user.username, req.file);
+    const avatarUrl = await usersService.updateUserAvatar(req.user.user_id, req.file);
     res.status(200).json({ message: 'Avatar updated successfully', avatarUrl });
 });
 
@@ -59,14 +59,14 @@ type UpdateBioBody = {
 };
 
 const updateUserBio = asyncHandler(async (req, res) => {
-    if (!req.user?.username) {
+    if (!req.user?.user_id) {
         throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
     }
     const body = req.body as Partial<UpdateBioBody>;
     if (typeof body.bio !== 'string') {
         throw new AppError('No bio provided', 400, 'NO_DATA_PROVIDED');
     }
-    await usersService.updateUserBio(req.user.username, body.bio);
+    await usersService.updateUserBio(req.user.user_id, body.bio);
     res.status(200).json({ message: 'Bio updated successfully' });
 });
 
