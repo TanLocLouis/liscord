@@ -129,7 +129,7 @@ const UserProfile: React.FC = () => {
                         </div>
 
                         <div className="profile-info">
-                            <h2 className="profile-username">{profileData.username || "Username"}</h2>
+                            <h2 className="profile-username text-[var(--color-text-secondary)]">{profileData.username || "Username"}</h2>
                             <p className="profile-createdAt">📆 {profileData.created_at ? convertToDateString(profileData.created_at) : "N/A"}</p>
                             <p className="profile-isVerified">{profileData.is_active ? "✅ Verified" : "❌ Not Verified"}</p>
                             <p className="profile-bio mt-2">{profileData.bio ? profileData.bio : "No bio available"}</p>

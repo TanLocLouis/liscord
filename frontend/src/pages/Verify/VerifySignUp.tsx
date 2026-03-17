@@ -11,7 +11,7 @@ const VerifySignup: React.FC = () => {
     return (
         <div className="verify-signup-wrapper">
             <div className="verify-signup-container">
-                <h1 className="verify-signup-container-title">Account Verified Successfully!</h1>
+                <h1 className="verify-signup-container-title text-[var(--color-text-secondary)]">Account Verified Successfully!</h1>
                 <button className="verify-signup-container-button" onClick={handleBackToLoginClicked}>Back to Login</button>
             </div>
         </div>

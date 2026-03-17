@@ -2,6 +2,7 @@ import "./ResetPasswordForm.css";
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useSearchParams } from "react-router";
 import { useToast } from "@contexts/ToastContext";
+import Input from "@components/Input/Input.js";
 
 interface ResetFormData {
     password: string;
@@ -64,10 +65,10 @@ const ResetPasswordForm: React.FC = () => {
                 <div className="login-wrapper-animate"></div>
                 <div className="login-container">
                     <form className="login-container-form" onSubmit={handleLoginFormSubmitted}>
-                        <h2 className="login-form-header">Reset New Password</h2>
+                        <h2 className="login-form-header text-[var(--color-text-secondary)]">Reset New Password</h2>
                         <div className="input-group">
-                            <label htmlFor="email">New Password</label>
-                            <input type="password" 
+                            <label htmlFor="email" className="text-[var(--color-text-secondary)]">New Password</label>
+                            <Input type="password" 
                                 id="password"
                                 name="password"
                                 placeholder="Enter your new password"
@@ -75,8 +76,8 @@ const ResetPasswordForm: React.FC = () => {
                                 onChange={handleResetPasswordFormChanged}/>
                         </div>
                         <div className="input-group">
-                            <label htmlFor="confirmPassword">Retype new password</label>
-                            <input type="password" 
+                            <label htmlFor="confirmPassword" className="text-[var(--color-text-secondary)]">Retype new password</label>
+                            <Input type="password" 
                                 id="confirmPassword"
                                 name="confirmPassword"
                                 placeholder="Retype your new password"
@@ -89,7 +90,7 @@ const ResetPasswordForm: React.FC = () => {
                         </button>
 
                         <div className="forgot-password-link">
-                            <label> After reset login <a href="/login">here</a></label>
+                            <label className="text-[var(--color-text-secondary)]"> After reset login <a href="/login" className="text-[var(--color-primary)]">here</a></label>
                         </div>
                     </form>
                 </div>

@@ -3,6 +3,7 @@ import "./SignUp.css";
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useAuth } from "@contexts/AuthContext";
 import { motion } from "motion/react";
+import Input from "@components/Input/Input.js";
 
 interface SignUpFormData {
     username: string;
@@ -56,10 +57,10 @@ const SignUp: React.FC = () => {
                 <div className="signup-container">
                     <form className="signup-container-form"
                           onSubmit={handleSignUpFormSubmitted}>
-                        <h2 className="signup-form-header">Sign Up</h2>
+                        <h2 className="signup-form-header text-[var(--color-text-secondary)]">Sign Up</h2>
                         <div className="input-group">
-                            <label htmlFor="username">Username</label>
-                            <input   
+                            <label htmlFor="username" className="text-[var(--color-text-secondary)]">Username</label>
+                            <Input   
                                     type="text" 
                                     id="username" 
                                     name="username" 
@@ -69,8 +70,8 @@ const SignUp: React.FC = () => {
                                     onChange={handleSignUpFormChanged}/>
                         </div>
                         <div className="input-group">
-                            <label htmlFor="email">Email</label>
-                            <input 
+                            <label htmlFor="email" className="text-[var(--color-text-secondary)]">Email</label>
+                            <Input
                                     type="email" 
                                     id="email" 
                                     name="email" 
@@ -79,8 +80,8 @@ const SignUp: React.FC = () => {
                                     onChange={handleSignUpFormChanged}/>
                         </div>
                         <div className="input-group">
-                            <label htmlFor="password">Password</label>
-                            <input 
+                            <label htmlFor="password" className="text-[var(--color-text-secondary)]">Password</label>
+                            <Input 
                                     type="password" 
                                     id="password" 
                                     name="password" 
@@ -90,14 +91,14 @@ const SignUp: React.FC = () => {
                                     onChange={handleSignUpFormChanged}/>
                         </div>
 
-                        <button type="submit" className="signup-submit-button">
+                        <button type="submit" className="signup-submit-button h-[45px]">
                             {isSubmitting ? "Creating Account..." : "Create Account"}
                         </button>
 
-                        <label className="signup-note">Already have an account? Login <a href="/login">here</a></label>
+                        <label className="signup-note text-[var(--color-text-secondary)]">Already have an account? Login <a href="/login" className="text-[var(--color-primary)]">here</a></label>
 
                         {isSignUpSuccessful &&
-                            <label className="signup-note-success">Check your email to verify your account</label>
+                            <label className="signup-note-success text-[var(--color-text-secondary)]">Check your email to verify your account</label>
                         }
                     </form>
                 </div>

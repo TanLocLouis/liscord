@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@contexts/AuthContext.jsx";
 import { useToast } from "@contexts/ToastContext.jsx";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
+import Input from "@components/Input/Input.js";
 
 type ServerNameEditorProps = {
     serverId: string | undefined;
@@ -89,7 +90,7 @@ const ServerNameEditor: React.FC<ServerNameEditorProps> = ({
     return (
         <div className="flex items-center gap-3">
             {isEditingServerName ? (
-                <input
+                <Input
                     type="text"
                     value={serverNameInput}
                     maxLength={255}
@@ -98,7 +99,7 @@ const ServerNameEditor: React.FC<ServerNameEditorProps> = ({
                     disabled={isUpdatingServerName}
                 />
             ) : (
-                <h2 className="profile-username">{serverName || "Server Name"}</h2>
+                <h2 className="profile-username text-[var(--color-text-secondary)]">{serverName || "Server Name"}</h2>
             )}
 
             {isEditingServerName ? (

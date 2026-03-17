@@ -4,6 +4,7 @@ import type { ChangeEvent, FormEvent, MouseEvent } from "react";
 import { useAuth } from "@contexts/AuthContext";
 import { useToast } from "@contexts/ToastContext";
 import { fetchWithAuth } from "@utils/fetchWithAuth";
+import Input from "@components/Input/Input.js";
 
 interface EditProfileProps {
     setIsEditProfileOpen: (open: boolean) => void;
@@ -76,11 +77,11 @@ const EditProfile: React.FC<EditProfileProps> = ({ setIsEditProfileOpen, current
     };
 
     return (
-        <div className="left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-[rgba(0,0,0,0.5)]">
-            <div className="w-full max-w-md rounded-2xl border border-[var(--color-primary)] bg-[var(--color-secondary-soft)] p-6 shadow-[2px_2px_8px_var(--color-primary)]">
+        <div className="fixed left-0 top-0 overflow-y-auto flex h-screen w-screen items-center justify-center bg-[rgba(0,0,0,0.5)]">
+            <div className="w-full absolute top-[80px] max-w-md rounded-2xl border border-[var(--color-primary)] bg-[var(--color-secondary-soft)] p-6 shadow-[2px_2px_8px_var(--color-primary)]">
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold">Edit Profile</h2>
+                    <h2 className="text-lg font-semibold text-[var(--color-text-secondary)]">Edit Profile</h2>
                     <svg
                         onClick={handleCloseEditProfileClicked}
                         className="cursor-pointer transition-transform duration-150 hover:scale-110"
@@ -95,9 +96,9 @@ const EditProfile: React.FC<EditProfileProps> = ({ setIsEditProfileOpen, current
 
                 {/* Bio section */}
                 <form onSubmit={handleBioSubmit} className="mb-4">
-                    <h3 className="mb-2 font-medium">Bio</h3>
+                    <h3 className="mb-2 font-medium text-[var(--color-text-secondary)]">Bio</h3>
                     <textarea
-                        className="w-full resize-none rounded-lg border border-[var(--color-primary)] bg-transparent p-2 focus:outline-none"
+                        className="w-full text-[var(--color-text-secondary)] resize-none rounded-lg border border-[var(--color-primary)] bg-transparent p-2 focus:outline-none"
                         rows={3}
                         maxLength={200}
                         value={bio}
@@ -111,11 +112,11 @@ const EditProfile: React.FC<EditProfileProps> = ({ setIsEditProfileOpen, current
 
                 {/* Password section */}
                 <form onSubmit={handlePasswordSubmit}>
-                    <h3 className="mb-1 font-medium">Change Password</h3>
+                    <h3 className="mb-1 font-medium text-[var(--color-text-secondary)]">Change Password</h3>
                     <div className="flex flex-col">
-                        <label className="ml-2">Current Password</label>
-                        <input
-                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)] h-[40px]"
+                        <label className="ml-2 text-[var(--color-text-secondary)]">Current Password</label>
+                        <Input
+                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)] h-[40px] bg-[var(--color-secondary-soft)]"
                             type="password"
                             name="currentPassword"
                             value={passwordData.currentPassword ?? ""}
@@ -124,9 +125,9 @@ const EditProfile: React.FC<EditProfileProps> = ({ setIsEditProfileOpen, current
                         />
                     </div>
                     <div className="flex flex-col">
-                        <label className="ml-2">New Password</label>
-                        <input
-                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)] h-[40px]"
+                        <label className="ml-2 text-[var(--color-text-secondary)]">New Password</label>
+                        <Input
+                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)] h-[40px] bg-[var(--color-secondary-soft)]"
                             type="password"
                             name="newPassword"
                             value={passwordData.newPassword ?? ""}
@@ -135,9 +136,9 @@ const EditProfile: React.FC<EditProfileProps> = ({ setIsEditProfileOpen, current
                         />
                     </div>
                     <div className="flex flex-col">
-                        <label className="ml-2">Confirm New Password</label>
-                        <input
-                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)] h-[40px]" 
+                        <label className="ml-2 text-[var(--color-text-secondary)]">Confirm New Password</label>
+                        <Input
+                            className="my-[0.3em] mb-2 rounded-lg border border-[var(--color-primary)] h-[40px] bg-[var(--color-secondary-soft)]"
                             type="password"
                             name="confirmNewPassword"
                             value={passwordData.confirmNewPassword ?? ""}

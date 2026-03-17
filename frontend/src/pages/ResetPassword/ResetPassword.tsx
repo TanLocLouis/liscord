@@ -2,6 +2,7 @@ import "./ResetPassword.css";
 import { useState, ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router";
 import { useToast } from "@contexts/ToastContext";
+import Input from "@components/Input/Input.js";
 
 interface ResetFormData {
     email: string;
@@ -54,10 +55,10 @@ const ResetPassword: React.FC = () => {
                 <div className="login-wrapper-animate"></div>
                 <div className="login-container">
                     <form className="login-container-form" onSubmit={handleResetPasswordFormSubmitted}>
-                        <h2 className="login-form-header">Reset Password</h2>
+                        <h2 className="login-form-header text-[var(--color-text-secondary)]">Reset Password</h2>
                         <div className="input-group">
                             <label htmlFor="email">Email</label>
-                            <input type="text" 
+                            <Input type="text" 
                                 id="email"
                                 name="email"
                                 placeholder="Enter your email"
@@ -65,7 +66,7 @@ const ResetPassword: React.FC = () => {
                                 onChange={handleResetFormChanged}/>
                         </div>
 
-                        <button type="submit" className="login-submit-button">
+                        <button type="submit" className="login-submit-button h-[45px]">
                             Send Reset Link
                         </button>
                     </form>

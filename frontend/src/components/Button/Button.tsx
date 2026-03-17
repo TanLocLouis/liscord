@@ -1,5 +1,3 @@
-import "./Button.css";
-
 const Button = ({width = "100%",
                 height = "50px",
                 margin = "0",
@@ -15,6 +13,7 @@ const Button = ({width = "100%",
                         backgroundColor,
                         }}
                 {...props}
+                className="border rounded-lg border-[var(--color-primary)] font-bold hover:shadow-[0_2px_10px_var(--color-primary)] transition-shadow duration-200"
         >
                 {title}
         </button>

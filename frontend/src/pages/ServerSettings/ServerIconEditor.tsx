@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useAuth } from "@contexts/AuthContext.jsx";
 import { useToast } from "@contexts/ToastContext.jsx";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
+import Input from "@components/Input/Input.js";
 
 type ServerIconEditorProps = {
     serverId: string | undefined;
@@ -95,12 +96,13 @@ const ServerIconEditor: React.FC<ServerIconEditorProps> = ({
                 </div>
             </div>
 
-            <input
+            <Input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleFileChange}
                 className="hidden"
+                containerClassName="hidden"
                 disabled={isUploading}
             />
         </>

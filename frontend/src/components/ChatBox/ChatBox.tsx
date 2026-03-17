@@ -4,6 +4,7 @@ import { useAuth } from "@contexts/AuthContext.jsx";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
+import Input from "@components/Input/Input.js";
 
 type Member = {
     id: string;
@@ -209,7 +210,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
         >
             <header className="flex justify-between items-center gap-4 px-5 py-4 border-b border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_78%,transparent)] backdrop-blur-[8px] max-md:p-[0.85rem]">
                 <div>
-                    <h2 className="text-[1.15rem] leading-[1.15]"># {channelInfo?.channelName || "general"}</h2>
+                    <h2 className="text-[1.15rem] leading-[1.15] text-[var(--color-text-secondary)]"># {channelInfo?.channelName || "general"}</h2>
                 </div>
 
                 {/* <div className="flex items-center gap-2" aria-label="Chat actions">
@@ -254,7 +255,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             </div>
 
             <footer className="border-t border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] grid grid-cols-[1fr_auto] items-center gap-[0.6rem] px-4 py-[0.8rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_74%,transparent)] max-md:grid-cols-1 place-items-center">
-                <input
+                <Input
                     type="text"
                     value={messageInput}
                     onChange={(event) => setMessageInput(event.target.value)}

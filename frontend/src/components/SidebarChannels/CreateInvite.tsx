@@ -3,6 +3,7 @@ import Button from '@components/Button/Button.js';
 import { useAuth } from '@contexts/AuthContext.js';
 import { useToast } from '@contexts/ToastContext.js';
 import { fetchWithAuth } from '@utils/fetchWithAuth.jsx';
+import Input from '@components/Input/Input.js';
 
 interface CreateInviteProps {
   setIsCreateInviteOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -111,8 +112,8 @@ const CreateInvite = (props: CreateInviteProps) => {
             {props.serverName ? `Generate a shareable invite for ${props.serverName}.` : 'Generate a shareable invite for this server.'}
           </p>
 
-          <label htmlFor="max-uses" className="block text-sm">Max Uses (optional)</label>
-          <input
+          <label htmlFor="max-uses" className="block text-sm text-[var(--color-text-secondary)]">Max Uses (optional)</label>
+          <Input
             id="max-uses"
             type="text"
             inputMode="numeric"
@@ -123,8 +124,8 @@ const CreateInvite = (props: CreateInviteProps) => {
             disabled={isSubmitting}
           />
 
-          <label htmlFor="expires-hours" className="mt-3 block text-sm">Expires In Hours (optional)</label>
-          <input
+          <label htmlFor="expires-hours" className="mt-3 block text-sm text-[var(--color-text-secondary)]">Expires In Hours (optional)</label>
+          <Input
             id="expires-hours"
             type="text"
             inputMode="numeric"
@@ -142,7 +143,7 @@ const CreateInvite = (props: CreateInviteProps) => {
           {inviteResult ? (
             <div className="mt-4 rounded-md border border-[var(--color-secondary-soft)] bg-[var(--color-background)] p-3">
               <p className="text-sm text-[var(--color-text-secondary)]">Invite Link</p>
-              <input
+              <Input
                 type="text"
                 readOnly
                 value={`${import.meta.env.VITE_HOST}${inviteResult.inviteLink}`}

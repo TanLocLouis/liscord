@@ -99,7 +99,7 @@ const Invite: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md rounded-xl border border-[var(--color-secondary-soft)] bg-[var(--color-secondary)] p-6 shadow-md">
-        <h2 className="text-xl font-semibold mb-3">Invite</h2>
+        <h2 className="text-xl font-semibold mb-3 text-[var(--color-text-secondary)]">Invite</h2>
         <p className="text-sm text-[var(--color-text-secondary)]">{message}</p>
         {(status === 'success' || status === 'error') ? (
           <div className="mt-4">

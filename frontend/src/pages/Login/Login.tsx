@@ -3,9 +3,11 @@ import { type FormEvent, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { useToast } from "@contexts/ToastContext";
 import { useAuth } from "@contexts/AuthContext";
+import Input from "@components/Input/Input";
 
 import { type ChangeEvent } from "react";
 import { motion } from "motion/react";
+import Button from "@components/Button/Button.js";
 
 interface LoginFormData {
     username: string;
@@ -56,32 +58,34 @@ const Login = () => {
                 <div className="login-wrapper-animate"></div>
                 <div className="login-container">
                     <form className="login-container-form" onSubmit={handleLoginFormSubmitted}>
-                        <h2 className="login-form-header">Login</h2>
-                        <div className="input-group">
-                            <label htmlFor="username">Username</label>
-                            <input type="text" 
-                                id="username"
-                                name="username"
-                                placeholder="Enter your username"
-                                required 
-                                onChange={handleLoginFormChanged}/>
-                        </div>
-                        <div className="input-group">
-                            <label htmlFor="password">Password</label>
-                            <input type="password" 
-                                id="password"
-                                name="password"
-                                placeholder="Enter your password"
-                                required 
-                                onChange={handleLoginFormChanged}/>
-                        </div>
+                        <h2 className="login-form-header text-[var(--color-text-secondary)]">Login</h2>
+                        <Input
+                            containerClassName="input-group"
+                            label="Username"
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Enter your username"
+                            required
+                            onChange={handleLoginFormChanged}
+                        />
+                        <Input
+                            containerClassName="input-group"
+                            label="Password"
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter your password"
+                            required
+                            onChange={handleLoginFormChanged}
+                        />
 
-                        <button type="submit" className="login-submit-button">
+                        <Button type="submit" className="login-submit-button h-[45px]" title="Submit">
                             Login
-                        </button>
+                        </Button>
 
                         <div className="forgot-password-link">
-                            <label>Forgot password? Reset <a href="/reset-password">here</a></label>
+                            <label className="text-[var(--color-text-secondary)]">Forgot password? Reset <a href="/reset-password" className="text-[var(--color-primary)]">here</a></label>
                         </div>
                     </form>
                 </div>
