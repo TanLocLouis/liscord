@@ -22,10 +22,21 @@ interface ChatBoxProps {
     } | null;
 }
 
+interface MessagePayload {
+    channelId: string;
+    content: string;
+    replyTo: string;
+}
+
 const ChatBox = ( { channelInfo } : ChatBoxProps) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [messageInput, setMessageInput] = useState("");
+    const [messageInput, setMessageInput] = useState<MessagePayload>({
+        channelId: "",
+        content: "",
+        replyTo: "",
+    });
     const [isSending, setIsSending] = useState(false);
+    const [isReplying, setIsReplying] = useState<ChatMessage | false>(false);
     const authContext = useAuth();
     const socketRef = useRef<Socket | null>(null);
     const activeChannelIdRef = useRef<string | null>(null);
@@ -147,13 +158,15 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
     }, [channelInfo?.channelId]);
 
     const handleSendMessage = async () => {
-        if (!channelInfo?.channelId || !messageInput.trim() || isSending) {
+        setIsReplying(false);
+
+        if (!channelInfo?.channelId || !messageInput?.content || isSending) {
             return;
         }
 
         try {
             setIsSending(true);
-            const content = messageInput.trim();
+            const content = messageInput.content.trim();
             const socket = socketRef.current;
 
             if (socket?.connected) {
@@ -163,7 +176,11 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                     content,
                 });
 
-                setMessageInput("");
+                setMessageInput({
+                    channelId: "",
+                    content: "",
+                    replyTo: ""
+                });
                 return;
             }
 
@@ -179,6 +196,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                     body: JSON.stringify({
                         channelId: channelInfo.channelId,
                         content,
+                        replyTo: isReplying ? isReplying.message_id : undefined,
                     }),
                 }
             );
@@ -187,7 +205,11 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 throw new Error("Failed to send message");
             }
 
-            setMessageInput("");
+            setMessageInput({
+                channelId: "",
+                content: "",
+                replyTo: ""
+            });
             await fetchMessages();
         } catch (error) {
             console.error("Error sending message:", error);
@@ -226,7 +248,13 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             <div className="grid grid-cols-[1fr_50px] min-h-0 max-[1080px]:grid-cols-1">
                 <div className="min-h-0 overflow-y-auto p-[1.1rem] flex flex-col-reverse gap-3" aria-label="Message list">
                     {messages.map((message) => (
-                        <MessageCard key={message.message_id} message={message}/>
+                        <div className="grid grid-cols-[1fr_50px] gap-3" key={message.message_id}>
+                            <MessageCard key={message.message_id} message={message}/>
+                            <div className="flex justify-center items-center rounded-lg hover:bg-[var(--color-primary)]"
+                                 onClick={() => setIsReplying(message)}>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" fill="var(--color-text-primary)" viewBox="0 0 640 640"><path d="M268.2 82.4C280.2 87.4 288 99 288 112L288 192L400 192C497.2 192 576 270.8 576 368C576 481.3 494.5 531.9 475.8 542.1C473.3 543.5 470.5 544 467.7 544C456.8 544 448 535.1 448 524.3C448 516.8 452.3 509.9 457.8 504.8C467.2 496 480 478.4 480 448.1C480 395.1 437 352.1 384 352.1L288 352.1L288 432.1C288 445 280.2 456.7 268.2 461.7C256.2 466.7 242.5 463.9 233.3 454.8L73.3 294.8C60.8 282.3 60.8 262 73.3 249.5L233.3 89.5C242.5 80.3 256.2 77.6 268.2 82.6z"/></svg>
+                            </div>
+                        </div>
                     ))}
                 </div>
 
@@ -254,11 +282,23 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 </aside> */}
             </div>
 
+            {isReplying && (
+                <>
+                <div className="bg-[var(--color-text)] border border-[var(--color-primary)] rounded-lg p-3">
+                    <div className="w-full flex justify-between items-center mb-2">
+                        <h3 className="">Replying to this message</h3>
+                        <svg onClick={() => {setIsReplying(false)}} xmlns="http://www.w3.org/2000/svg" width="1.5em" fill="var(--color-primary)" viewBox="0 0 640 640"><path d="M504.6 148.5C515.9 134.9 514.1 114.7 500.5 103.4C486.9 92.1 466.7 93.9 455.4 107.5L320 270L184.6 107.5C173.3 93.9 153.1 92.1 139.5 103.4C125.9 114.7 124.1 134.9 135.4 148.5L278.3 320L135.4 491.5C124.1 505.1 125.9 525.3 139.5 536.6C153.1 547.9 173.3 546.1 184.6 532.5L320 370L455.4 532.5C466.7 546.1 486.9 547.9 500.5 536.6C514.1 525.3 515.9 505.1 504.6 491.5L361.7 320L504.6 148.5z"/></svg>
+                    </div>
+                    <MessageCard message={isReplying} />
+                </div>
+                </>
+            )}
+
             <footer className="border-t border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] grid grid-cols-[1fr_auto] items-center gap-[0.6rem] px-4 py-[0.8rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_74%,transparent)] max-md:grid-cols-1 place-items-center">
                 <Input
                     type="text"
-                    value={messageInput}
-                    onChange={(event) => setMessageInput(event.target.value)}
+                    value={messageInput?.content || ""}
+                    onChange={((event) => setMessageInput(prev => ({ ...prev, content: event.target.value })))}
                     onKeyDown={handleComposerKeyDown}
                     className="w-full m-1 border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] rounded-[10px] px-[0.8rem] py-[0.62rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)_90%,transparent)] text-[var(--color-text-primary)] text-[0.92rem] focus:outline-none focus:border-[color:color-mix(in_oklab,var(--color-primary)_50%,transparent)]"
                     placeholder={`Message #${channelInfo?.channelName || "general"}`}
@@ -272,7 +312,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                     color="var(--color-text-primary)"
                     backgroundColor="var(--color-primary)"
                     onClick={handleSendMessage}
-                    disabled={!channelInfo?.channelId || !messageInput.trim() || isSending}
+                    disabled={!channelInfo?.channelId || !messageInput?.content.trim() || isSending}
                 />
             </footer>
         </section>

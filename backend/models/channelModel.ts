@@ -126,6 +126,15 @@ const channelModel = {
 
 		return result;
 	},
+	async deleteChannel(channelId: string): Promise<ResultSetHeader> {
+		const [result] = await pool.execute<ResultSetHeader>(
+			`DELETE FROM channels
+			WHERE channel_id = ?`,
+			[channelId]
+		);
+
+		return result;
+	},
 };
 
 export default channelModel;

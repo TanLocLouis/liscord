@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.1] - 2026-03-17
+- Refactor code
+- Create profile' bio.
+- Edit servers', channels' name.
+
 ## [1.1.0] - 2026-03-12
 - Invite link.
 - Basic auth system.

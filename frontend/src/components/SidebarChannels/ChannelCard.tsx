@@ -13,6 +13,7 @@ interface ChannelCardProps {
 
 const ChannelCard = ({ channelId, channelName, isActive, onClick }: ChannelCardProps) => {
     const [isEditing, setIsEditing] = useState(false);
+    const [isDeleted, setIsDeleted] = useState(false);
     const [newChannelName, setNewChannelName] = useState(channelName);
 
     const inputRef = useRef<HTMLInputElement>(null);
@@ -35,7 +36,6 @@ const ChannelCard = ({ channelId, channelName, isActive, onClick }: ChannelCardP
     const { addToast } = useToast();
     const handleSaveChannel = async (e: React.FormEvent<HTMLFormElement | React.MouseEvent<HTMLButtonElement>>) => {
         e.preventDefault();
-        e.stopPropagation();
         setIsEditing(false);
 
         if (newChannelName.trim() === "") {
@@ -68,9 +68,39 @@ const ChannelCard = ({ channelId, channelName, isActive, onClick }: ChannelCardP
         }
     }
 
+    const handleDeleteChannel = async (e: React.MouseEvent<SVGSVGElement>) => {
+        e.preventDefault();
+
+        const isConfirmedDeleteChannel = window.confirm('Are you sure you want to delete this channel? This action cannot be undone.');
+        if (!isConfirmedDeleteChannel) {
+            setIsEditing(false);
+            return;
+        }
+
+        try {
+            const response = await fetchWithAuth(authContext, `${import.meta.env.VITE_API_URL}/api/channels/${channelId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authContext?.accessToken}`,
+                },
+                body: JSON.stringify({ newName: newChannelName }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to delete channels');
+            }
+            const data = await response.json();
+            addToast('info', 'Channel deleted successfully');
+            setIsDeleted(true);
+        } catch (error) {
+            console.error('Error fetching channels:', error);
+            addToast('error', 'Failed to delete channel');
+        }
+    }
+
 
 	return (
-		<li onClick={() => onClick(channelName, channelId)}>
+		<li className={`${isDeleted ? 'hidden' : ''}`} onClick={() => onClick(channelName, channelId)}>
             {isEditing ? (
                 <form onSubmit={handleSaveChannel} className={`flex items-center p-1 border rounded hover:bg-[var(--color-primary)] cursor-pointer ${isActive ? "bg-[var(--color-primary)] border rounded" : ""}`}>
                     <Input
@@ -80,6 +110,7 @@ const ChannelCard = ({ channelId, channelName, isActive, onClick }: ChannelCardP
                         onChange={(e) => setNewChannelName(e.target.value)}
                         ref={inputRef}
                     />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="2em" fill="var(--color-text-primary)" viewBox="0 0 640 640" onClick={handleDeleteChannel}><path d="M232.7 69.9L224 96L128 96C110.3 96 96 110.3 96 128C96 145.7 110.3 160 128 160L512 160C529.7 160 544 145.7 544 128C544 110.3 529.7 96 512 96L416 96L407.3 69.9C402.9 56.8 390.7 48 376.9 48L263.1 48C249.3 48 237.1 56.8 232.7 69.9zM512 208L128 208L149.1 531.1C150.7 556.4 171.7 576 197 576L443 576C468.3 576 489.3 556.4 490.9 531.1L512 208z"/></svg>
                     <svg xmlns="http://www.w3.org/2000/svg" width="2em" fill="var(--color-text-primary)" viewBox="0 0 640 640" onClick={handleSaveChannel}><path d="M160 144C151.2 144 144 151.2 144 160L144 480C144 488.8 151.2 496 160 496L480 496C488.8 496 496 488.8 496 480L496 237.3C496 233.1 494.3 229 491.3 226L416 150.6L416 240C416 257.7 401.7 272 384 272L224 272C206.3 272 192 257.7 192 240L192 144L160 144zM240 144L240 224L368 224L368 144L240 144zM96 160C96 124.7 124.7 96 160 96L402.7 96C419.7 96 436 102.7 448 114.7L525.3 192C537.3 204 544 220.3 544 237.3L544 480C544 515.3 515.3 544 480 544L160 544C124.7 544 96 515.3 96 480L96 160zM256 384C256 348.7 284.7 320 320 320C355.3 320 384 348.7 384 384C384 419.3 355.3 448 320 448C284.7 448 256 419.3 256 384z"/></svg>
                 </form>
             ) : (

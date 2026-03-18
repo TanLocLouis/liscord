@@ -118,8 +118,37 @@ async function renameChannel(userId: string, channelId: string, newName: string)
 	};
 }
 
+async function deleteChannel(userId: string, channelId: string) {
+	if (!userId) {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const normalizedChannelId = channelId.trim();
+	if (!normalizedChannelId) {
+		throw new AppError('Channel id is required', 400, 'INVALID_CHANNEL_ID');
+	}
+
+	const channel = await channelModel.getChannelById(normalizedChannelId);
+
+	if (!channel) {
+		throw new AppError('Channel not found', 404, 'CHANNEL_NOT_FOUND');
+	}
+
+	const isServerOwner = await serverModel.isServerOwner(channel.server_id, userId);
+	if (!isServerOwner) {
+		throw new AppError('Forbidden', 403, 'FORBIDDEN');
+	}
+
+	await channelModel.deleteChannel(normalizedChannelId);
+
+	return {
+		message: 'Channel deleted successfully',
+	};
+}
+
 export default {
 	createChannel,
 	getServerChannels,
 	renameChannel,
+	deleteChannel,
 };

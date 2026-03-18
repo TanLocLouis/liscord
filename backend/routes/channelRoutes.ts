@@ -6,6 +6,7 @@ import validateData from '../middleware/validateData.js';
 
 const router = express.Router();
 
+// GET /api/channels/server/:serverId
 router.get(
 	'/server/:serverId',
 	authenticate,
@@ -20,6 +21,7 @@ router.get(
 	channelController.getServerChannels
 );
 
+// POST /api/channels
 router.post(
 	'/',
 	authenticate,
@@ -67,5 +69,19 @@ router.patch(
 	validateData,
 	channelController.renameChannel
 );
+
+router.delete(
+	'/:channelId',
+	authenticate,
+	[
+		param('channelId')
+			.isString()
+			.trim()
+			.isLength( { min: 1, max: 36 })
+			.withMessage('Channel id is required'),
+	],
+	validateData,
+	channelController.deleteChannel
+)
 
 export default router;
