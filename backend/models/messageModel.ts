@@ -8,7 +8,8 @@ export type CreateMessageInput = {
 	userId: string;
 	content: string;
 	type?: string;
-	replyTo?: string;
+	replyTo?: string | null;
+	replyToContent?: string | null
 };
 
 export type Message = {
@@ -19,7 +20,8 @@ export type Message = {
 	type: string;
 	created_at: Date;
 	updated_at: Date | null;
-	reply_to: string | null;
+	reply_to?: string | null;
+	reply_to_content?: string | null;
 };
 
 const messageModel = {
@@ -33,8 +35,9 @@ const messageModel = {
 				type,
 				created_at,
 				updated_at,
-				reply_to
-			) VALUES (?, ?, ?, ?, ?, toTimestamp(now()), null, ?)
+				reply_to,
+				reply_to_content
+			) VALUES (?, ?, ?, ?, ?, toTimestamp(now()), null, ?, ?)
 		`;
 
 		const params = [
@@ -44,6 +47,7 @@ const messageModel = {
 			messageData.content,
 			messageData.type ?? 'text',
 			messageData.replyTo ? types.Uuid.fromString(messageData.replyTo) : null,
+			messageData.replyToContent ?? null,
 		];
 
 		await client.execute(query, params, { prepare: true });
@@ -59,7 +63,8 @@ const messageModel = {
 				type,
 				created_at,
 				updated_at,
-				reply_to
+				reply_to,
+				reply_to_content
 			FROM liscord.messages_by_channel
 			WHERE channel_id = ?
 			LIMIT ?
@@ -91,6 +96,8 @@ const messageModel = {
 			created_at: row.created_at,
 			updated_at: row.updated_at,
 			reply_to: row.reply_to ? row.reply_to.toString() : null,
+			reply_to_content: row.reply_to_content ? row.reply_to_content.toString() : null,
+			// reply_to_content: row.reply_to_content.toString() || null,
 		}));
 	},
 };

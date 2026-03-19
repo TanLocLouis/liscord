@@ -8,11 +8,12 @@ type AuthUser = {
 };
 
 type SendMessagePayload = {
-	roomId?: unknown;
-	channelId?: unknown;
-	content?: unknown;
-	type?: unknown;
-	replyTo?: unknown;
+	roomId?: string;
+	channelId?: string;
+	content?: string;
+	type?: string;
+	replyTo?: string | null;
+	replyToContent?: string | null;
 };
 
 const parseUserFromSocket = (socket: Socket): AuthUser | null => {
@@ -95,8 +96,9 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 			const payload = {
 				channelId,
 				content,
-				...(typeof data.type === 'string' && data.type.trim() ? { type: data.type.trim() } : {}),
-				...(typeof data.replyTo === 'string' && data.replyTo.trim() ? { replyTo: data.replyTo.trim() } : {}),
+				type: data.type === 'text' ? 'text' : 'text',
+				replyTo: typeof data.replyTo === 'string' && data.replyTo.trim() ? data.replyTo.trim() : null,
+				replyToContent: typeof data.replyToContent === 'string' && data.replyToContent.trim() ? data.replyToContent.trim() : null,
 			};
 
             // Create the message in the database
@@ -111,6 +113,7 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 				content,
 				type: payload.type ?? 'text',
 				reply_to: payload.replyTo ?? null,
+				reply_to_content: payload.replyToContent ?? null,
 				created_at: new Date().toISOString(),
 			});
 		} catch (error) {

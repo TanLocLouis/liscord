@@ -7,6 +7,7 @@ type CreateMessageBody = {
 	content: string;
 	type?: string;
 	replyTo?: string;
+	replyToContent?: string;
 };
 
 const createMessage = asyncHandler(async (req, res) => {
@@ -23,7 +24,8 @@ const createMessage = asyncHandler(async (req, res) => {
 		channelId: body.channelId,
 		content: body.content,
 		...(body.type !== undefined ? { type: body.type } : {}),
-		...(body.replyTo !== undefined ? { replyTo: body.replyTo } : {}),
+		replyTo: typeof body.replyTo === 'string' && body.replyTo.trim() ? body.replyTo.trim() : null,
+		replyToContent: typeof body.replyToContent === 'string' && body.replyToContent.trim() ? body.replyToContent.trim() : null,
 	};
 
 	const result = await messageServices.createMessage(req.user.user_id, payload);

@@ -8,7 +8,8 @@ type CreateMessagePayload = {
 	channelId: string;
 	content: string;
 	type?: string;
-	replyTo?: string;
+	replyTo?: string | null;
+	replyToContent?: string | null;
 };
 
 async function createMessage(userId: string, payload: CreateMessagePayload) {
@@ -52,6 +53,7 @@ async function createMessage(userId: string, payload: CreateMessagePayload) {
 
 	if (payload.replyTo) {
 		messageData.replyTo = payload.replyTo;
+		messageData.replyToContent = payload.replyToContent;
 	}
 
 	await messageModel.createMessage(messageData);

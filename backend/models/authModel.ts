@@ -20,14 +20,14 @@ type UserRow = RowDataPacket & {
 const authModel = {
     async createUser(userData: CreateUserInput): Promise<ResultSetHeader> {
         const [result] = await pool.execute<ResultSetHeader>(
-            'INSERT INTO users (user_id, username, email, password_hash, created_at, is_active) VALUES (?, ?, ?, ?, ?, ?)',
+            'REPLACE INTO users (user_id, username, email, password_hash, created_at, is_active) VALUES (?, ?, ?, ?, ?, ?)',
             [userData.user_id, userData.username, userData.email, userData.passwordHash, new Date(), false]
         );
         return result;
     },
     async isUserExisted(username: string): Promise<boolean> {
         const [rows] = await pool.execute<RowDataPacket[]>(
-            'SELECT 1 FROM users WHERE username = ? LIMIT 1',
+            'SELECT 1 FROM users WHERE username = ? and is_active = 1 LIMIT 1',
             [username]
         );
         return rows.length > 0;

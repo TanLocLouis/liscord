@@ -8,6 +8,7 @@ export type ChatMessage = {
     created_at: string;
     content: string;
     reply_to?: string;
+    reply_to_content?: string;
     mine?: boolean;
 };
 

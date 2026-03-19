@@ -125,7 +125,7 @@ const serverModel = {
 		expiresAt: Date | null;
 	}): Promise<ResultSetHeader> {
 		const [result] = await pool.execute<ResultSetHeader>(
-			`INSERT INTO invites (invites_id, code, server_id, created_by, max_uses, expires_at)
+			`INSERT INTO invites (invite_id, code, server_id, created_by, max_uses, expires_at)
 			 VALUES (?, ?, ?, ?, ?, ?)`,
 			[payload.inviteId, payload.code, payload.serverId, payload.createdBy, payload.maxUses, payload.expiresAt]
 		);
