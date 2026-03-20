@@ -4,8 +4,12 @@ import Sidebar from '@components/Sidebar/Sidebar.js';
 import SidebarChannels from '@components/SidebarChannels/SidebarChannels.js';
 import ChatBox from '@components/ChatBox/ChatBox.js';
 import { motion } from "motion/react";
+import { useParams } from 'react-router';
 
 const Home: React.FC = () => {
+  // const currentServerId = useParams().serverId;
+  // const currentChannelId = useParams().channelId;
+
   const [currentServerInfo, setCurrentServerInfo] = useState<{ serverName: string; serverId: string } | null>(null);
   const [currentChannelInfo, setCurrentChannelInfo] = useState<{ channelName: string; channelId: string } | null>(null);
 

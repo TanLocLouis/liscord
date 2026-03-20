@@ -93,6 +93,7 @@ async function login(username: string, password: string) {
         user_id: user.user_id,
         username: user.username,
         email: user.email,
+        avatar: user.avatar,
         isActive: user.is_active
     }
     

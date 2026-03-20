@@ -11,6 +11,7 @@ type SendMessagePayload = {
 	roomId?: string;
 	channelId?: string;
 	content?: string;
+	avatar?: string | null;
 	type?: string;
 	replyTo?: string | null;
 	replyToContent?: string | null;
@@ -96,10 +97,13 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 			const payload = {
 				channelId,
 				content,
+				avatar: data.avatar ?? null,
 				type: data.type === 'text' ? 'text' : 'text',
 				replyTo: typeof data.replyTo === 'string' && data.replyTo.trim() ? data.replyTo.trim() : null,
 				replyToContent: typeof data.replyToContent === 'string' && data.replyToContent.trim() ? data.replyToContent.trim() : null,
 			};
+
+			console.log('[DEBUG]: ', data.avatar);
 
             // Create the message in the database
 			const created = await messageServices.createMessage(authUser.userId, payload);
@@ -110,6 +114,7 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 				message_id: created.messageId,
 				user_id: authUser.userId,
 				user_name: authUser.username,
+				avatar: data.avatar ?? null,
 				content,
 				type: payload.type ?? 'text',
 				reply_to: payload.replyTo ?? null,

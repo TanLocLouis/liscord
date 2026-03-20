@@ -19,3 +19,7 @@
     + Avatar bucket should set Public Object, Private Bucket.
 
 - useEffect render after component mount, so If I want to focus the conditional input, put it in useEffect.
+
+- Socket is not realiable so when
+    + Send through Socket => Database, if failed, send to Database
+    + Receive from Socket, if failed, receive from Database

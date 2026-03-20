@@ -36,11 +36,10 @@ function App() {
 
               <ProtectedRoute>
                 <Routes>
-                  <Route path="/profile" element={<Profile />}/>
+                  <Route path="/:userId" element={<Profile />}/>
                   <Route path="/reset-password" element={<ResetPassword />}/>
                   <Route path="/reset-password-form" element={<ResetPasswordForm />}/>
                   <Route path="/verify-sign-up" element={<VerifySignup />}/>
-                  <Route path="/profile" element={<Profile />}/>
 
                   <Route path="/" element={<Navigate to="/channels/@me" replace/>} />
                   <Route path="/channels/@me" element={<Home />}/>

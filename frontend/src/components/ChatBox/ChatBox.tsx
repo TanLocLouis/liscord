@@ -103,6 +103,13 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             auth: {
                 token: authContext.accessToken,
             },
+            // Socket will timeout after a while
+            // so we need to enable reconnection 
+            // to ensure the user stays connected
+            reconnection: true,
+            reconnectionAttempts: Infinity,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
         });
 
         socketRef.current = socket;
@@ -176,10 +183,13 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 socket.emit("send_message", {
                     roomId: channelInfo.channelId,
                     channelId: channelInfo.channelId,
+                    avatar: authContext?.userInfo ? authContext.userInfo.avatar : toAvatar("Unknown User"),
                     content,
                     replyTo: isReplying ? isReplying.message_id : undefined,
                     replyToContent: isReplying ? isReplying.content : undefined,
                 });
+
+                console.log("[DEBUG] ", authContext.userInfo.avatar);
 
                 setMessageInput({
                     channelId: "",
@@ -265,7 +275,10 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                                     <p className="text-sm text-[var(--color-text-primary)]">{message.reply_to_content || "Original message not found"}</p>
                                 </div>
                             )}
-                            <div className={`${message.reply_to ? "ml-5 mb-2" : ""}`}>
+                            <div className={`${message.reply_to ? "ml-5 mb-2" : ""}` + "relative"}>
+                                {message.user_name === authContext.userInfo?.username && (
+                                    <span className="absolute left-[20px] top-[50px] text-[0.8em] text-[var(--color-primary)] opacity-80" aria-label="You">You</span>
+                                )}
                                 <MessageCard key={message.message_id} message={message}/>
                             </div>
                             <div className="flex justify-center items-center rounded-lg hover:bg-[var(--color-primary)]"

@@ -31,7 +31,7 @@ const TopHeader = () => {
     );
 
     const handleProfileClicked = () => {
-        redirect("/profile");
+        redirect(userInfo?.user_id);
     }
 
     const handleSignUpClicked = () => {
