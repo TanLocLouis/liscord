@@ -15,13 +15,14 @@
 
 ## Future
 - Rate limitter.
-- Limit the number of server and channel for each user.
+- ✅ Limit the number of server and channel for each user.
 - Admin Dashboard
     + Stats
     + Admin
 - ChatBox
     + Client => Socket Gateway => Redis => API => Database.
     + API => EventStream => Socket Gateway => Client.
-    + Using WebSocket to send/receive data.
+    + ✅ Using WebSocket to send/receive data.
+- Push notification for message.
     + Using Redis as Event Stream.
 - Implement E2EE to message.

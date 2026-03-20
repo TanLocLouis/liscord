@@ -43,6 +43,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const toAvatar = (name: string) => `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || "U")}`;
+    const notificationSound = new Audio("/sounds/nyaa.mp3");
 
     const fetchMessages = async () => {
         if (!channelInfo?.channelId) {
@@ -98,6 +99,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             return;
         }
 
+        // Establish WebSocket connection
         const socket = io(import.meta.env.VITE_API_URL, {
             transports: ["websocket"],
             auth: {
@@ -114,6 +116,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
 
         socketRef.current = socket;
 
+        // Handle incoming messages
         socket.on("receive_message", (incomingMessage: any) => {
             const activeChannelId = activeChannelIdRef.current;
             if (!activeChannelId || incomingMessage?.channel_id !== activeChannelId) {
@@ -135,10 +138,18 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 if (prev.some((message) => message.message_id === normalizedMessage.message_id)) {
                     return prev;
                 }
+
+                // Play notification sound if the message 
+                // is not sent by the current user
+                if (normalizedMessage.user_name !== authContext.userInfo?.username) {
+                    notificationSound.currentTime = 0;
+                    notificationSound.play();
+                }
                 return [normalizedMessage, ...prev];
             });
         });
 
+        // Handle socket errors
         socket.on("socket_error", (errorPayload: { message?: string }) => {
             console.error("Socket error:", errorPayload?.message ?? "Unknown socket error");
         });
@@ -152,6 +163,8 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
         };
     }, [authContext?.accessToken, authContext?.userInfo?.username]);
 
+
+    // Join chat room
     useEffect(() => {
         const socket = socketRef.current;
         const channelId = channelInfo?.channelId;
@@ -162,10 +175,12 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
 
         socket.emit("join_room", channelId);
 
+        // Leave chat room
         return () => {
             socket.emit("leave_room", channelId);
         };
     }, [channelInfo?.channelId]);
+
 
     const handleSendMessage = async () => {
         setIsReplying(false);
@@ -179,6 +194,8 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             const content = messageInput.content.trim();
             const socket = socketRef.current;
 
+            // Send message via WebSocket if connected
+            // and save to database via REST API
             if (socket?.connected) {
                 socket.emit("send_message", {
                     roomId: channelInfo.channelId,
@@ -198,7 +215,9 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 });
                 return;
             }
-
+            
+            // Send message via REST API as fallback 
+            // if socket is not connected
             const response = await fetchWithAuth(
                 authContext,
                 `${import.meta.env.VITE_API_URL}/api/messages/`,
@@ -233,6 +252,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
         }
     };
 
+    // Handlers
     const handleComposerKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -268,20 +288,20 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             <div className="grid grid-cols-[1fr_50px] min-h-0 max-[1080px]:grid-cols-1">
                 <div className="min-h-0 overflow-y-auto p-[1.1rem] flex flex-col-reverse gap-3" aria-label="Message list">
                     {messages.map((message) => (
-                        <div className="grid grid-cols-[1fr_50px] gap-3" key={message.message_id}>
+                        <div className="group grid grid-cols-[1fr_50px] gap-3" key={message.message_id}>
                             {message.reply_to_content && (
                                 <div className="col-span-2 border-l border-[color:color-mix(in_oklab,var(--color-primary)_50%,transparent)] pl-3 mt-1">
                                     <p className="text-xs text-[var(--color-primary)] mb-1">Replying to:</p>
                                     <p className="text-sm text-[var(--color-text-primary)]">{message.reply_to_content || "Original message not found"}</p>
                                 </div>
                             )}
-                            <div className={`${message.reply_to ? "ml-5 mb-2" : ""}` + "relative"}>
+                            <div className={`${message.reply_to ? "ml-5 mb-2" : ""}`}>
                                 {message.user_name === authContext.userInfo?.username && (
-                                    <span className="absolute left-[20px] top-[50px] text-[0.8em] text-[var(--color-primary)] opacity-80" aria-label="You">You</span>
+                                    <span className="left-[20px] top-[50px] text-[0.8em] text-[var(--color-primary)] opacity-80" aria-label="You">You</span>
                                 )}
                                 <MessageCard key={message.message_id} message={message}/>
                             </div>
-                            <div className="flex justify-center items-center rounded-lg hover:bg-[var(--color-primary)]"
+                            <div className="hidden group-hover:flex justify-center items-center rounded-lg hover:bg-[var(--color-primary)]"
                                  onClick={handleReplyMessage(message)}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" fill="var(--color-text-primary)" viewBox="0 0 640 640"><path d="M268.2 82.4C280.2 87.4 288 99 288 112L288 192L400 192C497.2 192 576 270.8 576 368C576 481.3 494.5 531.9 475.8 542.1C473.3 543.5 470.5 544 467.7 544C456.8 544 448 535.1 448 524.3C448 516.8 452.3 509.9 457.8 504.8C467.2 496 480 478.4 480 448.1C480 395.1 437 352.1 384 352.1L288 352.1L288 432.1C288 445 280.2 456.7 268.2 461.7C256.2 466.7 242.5 463.9 233.3 454.8L73.3 294.8C60.8 282.3 60.8 262 73.3 249.5L233.3 89.5C242.5 80.3 256.2 77.6 268.2 82.6z"/></svg>
                             </div>
