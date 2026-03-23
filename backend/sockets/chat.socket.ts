@@ -1,11 +1,6 @@
-import jwt from 'jsonwebtoken';
 import type { Server as SocketIOServer, Socket } from 'socket.io';
 import messageServices from '../services/messageServices.js';
-
-type AuthUser = {
-	userId: string;
-	username: string | null;
-};
+import utils from './utils.js';
 
 type SendMessagePayload = {
 	roomId?: string;
@@ -17,42 +12,10 @@ type SendMessagePayload = {
 	replyToContent?: string | null;
 };
 
-const parseUserFromSocket = (socket: Socket): AuthUser | null => {
-	const authToken = socket.handshake?.auth?.token;
-	const authHeader = socket.handshake?.headers?.authorization;
-	const bearerToken = typeof authHeader === 'string' ? authHeader.split(' ')[1] : undefined;
-	const token = typeof authToken === 'string' ? authToken : bearerToken;
-
-	if (!token) {
-		return null;
-	}
-
-	const secret = process.env.JWT_ACCESS_TOKEN_SECRET;
-	if (!secret) {
-		return null;
-	}
-
-	try {
-		const decoded = jwt.verify(token, secret);
-		if (typeof decoded === 'string') {
-			return null;
-		}
-
-		if (decoded && typeof decoded === 'object' && typeof decoded.user_id === 'string') {
-			return {
-				userId: decoded.user_id,
-				username: typeof decoded.username === 'string' ? decoded.username : null,
-			};
-		}
-
-		return null;
-	} catch {
-		return null;
-	}
-};
+const typingUsers: Record<string, Set<string>> = {};
 
 const chatSocket = (io: SocketIOServer, socket: Socket) => {
-	const authUser = parseUserFromSocket(socket);
+	const authUser = utils.parseUserFromSocket(socket);
 
 	socket.on('join_room', (roomId: unknown) => {
 		if (typeof roomId !== 'string' || !roomId.trim()) {
@@ -70,6 +33,37 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 		}
 
 		socket.leave(roomId);
+	});
+
+	socket.on('start_typing', ( {channelId } : { channelId: string }) => {
+		const authUser = utils.parseUserFromSocket(socket);
+		const userName = authUser?.username;
+
+		if (!userName) {
+			socket.emit('socket_error', { message: 'Unauthorized' });
+			return;
+		}
+		// console.log(`[DEBUG] User ${userId} is typing in channel ${channelId}`);
+		if (!typingUsers[channelId]) {
+			typingUsers[channelId] = new Set();
+		}
+		typingUsers[channelId].add(userName);
+		io.to(channelId).emit('typing_users', Array.from(typingUsers[channelId]));
+	});
+
+	socket.on('stop_typing', ( { channelId } : { channelId: string }) => {
+		const authUser = utils.parseUserFromSocket(socket);
+		const userName = authUser?.username;
+
+		if (!userName) {
+			socket.emit('socket_error', { message: 'Unauthorized' });
+			return;
+		}
+		// console.log(`[DEBUG] User ${userId} stopped typing in channel ${channelId}`);
+		if (typingUsers[channelId]) {
+			typingUsers[channelId].delete(userName);
+			io.to(channelId).emit('typing_users', Array.from(typingUsers[channelId]));
+		}
 	});
 
 	socket.on('send_message', async (data: SendMessagePayload) => {

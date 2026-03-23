@@ -5,15 +5,13 @@ import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import Input from "@components/Input/Input.js";
+import { motion } from "framer-motion";
 
 type Member = {
     id: string;
     name: string;
     status: "online" | "idle" | "dnd" | "offline";
 };
-
-// const members: Member[] = [
-// ];
 
 interface ChatBoxProps {
     channelInfo: {
@@ -29,6 +27,10 @@ interface MessagePayload {
 }
 
 const ChatBox = ( { channelInfo } : ChatBoxProps) => {
+    const authContext = useAuth();
+    const activeChannelIdRef = useRef<string | null>(null);
+
+    // Message states
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [messageInput, setMessageInput] = useState<MessagePayload>({
         channelId: "",
@@ -37,14 +39,26 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
     });
     const [isSending, setIsSending] = useState(false);
     const [isReplying, setIsReplying] = useState<ChatMessage | false>(false);
-    const authContext = useAuth();
     const socketRef = useRef<Socket | null>(null);
-    const activeChannelIdRef = useRef<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [emitTyping, setEmitTyping] = useState(false);
+    const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
+    // Scroll down button
+    const [showScrollDown, setShowScrollDown] = useState(false);
+    const messageListRef = useRef<HTMLDivElement>(null);
+    // const [onlineUserCount, setOnlineUserCount] = useState(0);
+    
+    // Media
     const toAvatar = (name: string) => `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || "U")}`;
     const notificationSound = new Audio("/sounds/nyaa.mp3");
 
+    // Channel
+    useEffect(() => {
+        activeChannelIdRef.current = channelInfo?.channelId ?? null;
+    }, [channelInfo?.channelId]);
+
+    // Fetch message history when channel changes
     const fetchMessages = async () => {
         if (!channelInfo?.channelId) {
             setMessages([]);
@@ -84,18 +98,17 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
         }
     };
 
+    // Fetch message when open channel
     useEffect(() => {
         fetchMessages();
     }, [channelInfo?.channelId, authContext?.accessToken]);
 
-    useEffect(() => {
-        activeChannelIdRef.current = channelInfo?.channelId ?? null;
-    }, [channelInfo?.channelId]);
-
+    // Socket
     useEffect(() => {
         if (!authContext?.accessToken) {
             socketRef.current?.disconnect();
             socketRef.current = null;
+            // setOnlineUserCount(0);
             return;
         }
 
@@ -158,6 +171,11 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
             console.error("Socket connect error:", error.message);
         });
 
+        // Get a list of user is typing
+        socket?.on("typing_users", (typingUsers: string[]) => {
+            setTypingUsers(typingUsers);
+        });
+
         return () => {
             socket.disconnect();
         };
@@ -181,7 +199,23 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
         };
     }, [channelInfo?.channelId]);
 
+    // Emit socket when user is typing
+    useEffect(() => {
+        const socket = socketRef.current;
+        const inputValue = inputRef.current?.value;
 
+        if (!emitTyping && inputValue !== "") {
+            setEmitTyping(true);
+            socket?.emit("start_typing", { channelId: channelInfo?.channelId,  });
+        }
+
+        if (inputValue === "") {
+            setEmitTyping(false);
+            socket?.emit("stop_typing", { channelId: channelInfo?.channelId,  });
+        }
+    }, [inputRef.current?.value]);
+
+    // Handle send message
     const handleSendMessage = async () => {
         setIsReplying(false);
 
@@ -252,7 +286,8 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
         }
     };
 
-    // Handlers
+    // Handle send Send button click
+    // and Enter key press in message input box
     const handleComposerKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -265,6 +300,38 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
         inputRef.current?.focus();
     }
 
+    // Handle scroll down button
+    useEffect(() => {
+        const messageList = messageListRef.current;
+        if (!messageList) return;
+
+        const handleScroll = () => {
+            const { scrollTop } = messageList;
+
+            // The messageList is flex column reversed
+            // so we check if scrollTop is less than a negative threshold
+            setShowScrollDown(scrollTop < -20);
+        };
+
+        messageList.addEventListener("scroll", handleScroll);
+
+        return () => {
+            messageList.removeEventListener("scroll", handleScroll);
+        };
+    }, []);
+
+    const scrollToBottom = () => {
+        const messageList = messageListRef.current;
+        if (!messageList) return;
+
+        // Scroll to bottom
+        // Note: Message list is flex column reversed
+        messageList.scrollTo({
+            top: 0,
+            behavior: "smooth",
+        });
+    };
+
     return (
         <section
             className="flex-1 min-w-0 h-[calc(100vh-85px)] m-2 rounded-[18px] border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] shadow-[0_16px_38px_color-mix(in_oklab,var(--color-text-primary)_18%,transparent)] grid grid-rows-[auto_1fr_auto] overflow-hidden bg-[radial-gradient(circle_at_10%_-10%,color-mix(in_oklab,var(--color-primary)_20%,transparent),transparent_45%),radial-gradient(circle_at_90%_0%,color-mix(in_oklab,var(--color-info)_16%,transparent),transparent_38%),color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)] max-md:mx-2 max-md:my-[0.4rem] max-md:rounded-[14px]"
@@ -274,19 +341,17 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 <div>
                     <h2 className="text-[1.15rem] leading-[1.15] text-[var(--color-text-secondary)]"># {channelInfo?.channelName || "general"}</h2>
                 </div>
-
-                {/* <div className="flex items-center gap-2" aria-label="Chat actions">
-                    <button
-                        type="button"
-                        className="w-[34px] h-[34px] rounded-[10px] border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)_84%,transparent)] text-[var(--color-text-primary)] inline-flex items-center justify-center cursor-pointer hover:border-[color:color-mix(in_oklab,var(--color-primary)_44%,transparent)] hover:bg-[color:color-mix(in_oklab,var(--color-primary-soft)_24%,color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)_76%)]"
-                        aria-label="Open thread list"
-                    >
-                    </button>
+                {/* <div className="inline-flex items-center gap-2 rounded-full border border-[color:color-mix(in_oklab,var(--color-success)_58%,transparent)] bg-[color:color-mix(in_oklab,var(--color-success)_18%,transparent)] px-3 py-1 text-[0.82rem] text-[var(--color-text-primary)]">
+                    <span className="h-2 w-2 rounded-full bg-[var(--color-success)]" aria-hidden="true" />
+                    <span>{onlineUserCount} online</span>
                 </div> */}
             </header>
-
+                
+            {/* Show message history */}
             <div className="grid grid-cols-[1fr_50px] min-h-0 max-[1080px]:grid-cols-1">
-                <div className="min-h-0 overflow-y-auto p-[1.1rem] flex flex-col-reverse gap-3" aria-label="Message list">
+                <div className="min-h-0 overflow-y-auto p-[1.1rem] flex flex-col-reverse gap-3" 
+                     aria-label="Message list"
+                     ref={messageListRef}>
                     {messages.map((message) => (
                         <div className="group grid grid-cols-[1fr_50px] gap-3" key={message.message_id}>
                             {message.reply_to_content && (
@@ -295,12 +360,14 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                                     <p className="text-sm text-[var(--color-text-primary)]">{message.reply_to_content || "Original message not found"}</p>
                                 </div>
                             )}
+                            {/* Indent replied message */}
                             <div className={`${message.reply_to ? "ml-5 mb-2" : ""}`}>
                                 {message.user_name === authContext.userInfo?.username && (
                                     <span className="left-[20px] top-[50px] text-[0.8em] text-[var(--color-primary)] opacity-80" aria-label="You">You</span>
                                 )}
                                 <MessageCard key={message.message_id} message={message}/>
                             </div>
+                            {/* Show reply button when hovering */}
                             <div className="hidden group-hover:flex justify-center items-center rounded-lg hover:bg-[var(--color-primary)]"
                                  onClick={handleReplyMessage(message)}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" fill="var(--color-text-primary)" viewBox="0 0 640 640"><path d="M268.2 82.4C280.2 87.4 288 99 288 112L288 192L400 192C497.2 192 576 270.8 576 368C576 481.3 494.5 531.9 475.8 542.1C473.3 543.5 470.5 544 467.7 544C456.8 544 448 535.1 448 524.3C448 516.8 452.3 509.9 457.8 504.8C467.2 496 480 478.4 480 448.1C480 395.1 437 352.1 384 352.1L288 352.1L288 432.1C288 445 280.2 456.7 268.2 461.7C256.2 466.7 242.5 463.9 233.3 454.8L73.3 294.8C60.8 282.3 60.8 262 73.3 249.5L233.3 89.5C242.5 80.3 256.2 77.6 268.2 82.6z"/></svg>
@@ -333,6 +400,32 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 </aside> */}
             </div>
 
+            {/* Scroll down button */}
+            {showScrollDown &&
+                <div className="absolute bottom-[150px] right-[40px] bg-opacity-80">
+                    <Button 
+                        width="40px"
+                        height="40px"
+                        title="⬇️"
+                        className="absolute bottom-[150px] right-[40px] bg-[var(--color-primary)] w-[100px] border rounded-lg p-1"
+                        onClick={scrollToBottom}>
+                    </Button>
+                </div>
+            }
+
+            {typingUsers.length > 0 && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                >
+                    <div className="text-sm text-muted-foreground pl-5 pb-5">
+                        {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Replying to message preview */}
             {isReplying && (
                 <>
                 <div className="bg-[var(--color-text)] border border-[var(--color-primary)] rounded-lg p-3">
@@ -345,6 +438,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 </>
             )}
 
+            {/* Message type box */}
             <footer className="border-t border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] grid grid-cols-[1fr_auto] items-center gap-[0.6rem] px-4 py-[0.8rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_74%,transparent)] max-md:grid-cols-1 place-items-center">
                 <Input
                     type="text"
