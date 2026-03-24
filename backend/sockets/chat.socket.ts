@@ -66,6 +66,16 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 		}
 	});
 
+	socket.on('disconnect', () => {
+		// Clean up typing users on disconnect
+		for (const channelId in typingUsers) {
+			if (typingUsers[channelId].has(authUser?.username ?? '')) {
+				typingUsers[channelId].delete(authUser?.username ?? '');
+				io.to(channelId).emit('typing_users', Array.from(typingUsers[channelId]));
+			}
+		}
+	});
+
 	socket.on('send_message', async (data: SendMessagePayload) => {
 		try {
 			if (!authUser?.userId) {

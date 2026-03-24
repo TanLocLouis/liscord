@@ -74,7 +74,26 @@ const iconUploadMiddleware = (req: Request, res: Response, next: NextFunction) =
     });
 };
 
+const emojiUploadMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    upload.single('emoji')(req, res, (err: unknown) => {
+        if (err instanceof multer.MulterError) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return next(new AppError('Emoji exceeds max file size of 5MB', 400, 'EMOJI_FILE_TOO_LARGE'));
+            }
+
+            return next(new AppError(err.message, 400, 'EMOJI_UPLOAD_ERROR'));
+        }
+
+        if (err) {
+            return next(err);
+        }
+
+        next();
+    });
+};
+
 export {
     avatarUploadMiddleware,
     iconUploadMiddleware,
+    emojiUploadMiddleware,
 };

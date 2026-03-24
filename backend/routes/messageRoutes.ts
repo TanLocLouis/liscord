@@ -55,4 +55,71 @@ router.post(
 	messageController.createMessage
 );
 
+router.get(
+	'/:messageId/reactions',
+	authenticate,
+	[
+		param('messageId')
+			.isString()
+			.trim()
+			.isUUID()
+			.withMessage('Message id must be a valid UUID'),
+		query('channelId')
+			.isString()
+			.trim()
+			.isUUID()
+			.withMessage('Channel id must be a valid UUID'),
+	],
+	validateData,
+	messageController.getMessageReactions
+);
+
+router.post(
+	'/:messageId/reactions',
+	authenticate,
+	[
+		param('messageId')
+			.isString()
+			.trim()
+			.isUUID()
+			.withMessage('Message id must be a valid UUID'),
+		body('channelId')
+			.isString()
+			.trim()
+			.isUUID()
+			.withMessage('Channel id must be a valid UUID'),
+		body('emojiId')
+			.isString()
+			.trim()
+			.isUUID()
+			.withMessage('Emoji id must be a valid UUID'),
+	],
+	validateData,
+	messageController.addReaction
+);
+
+router.delete(
+	'/:messageId/reactions/:emojiId',
+	authenticate,
+	[
+		param('messageId')
+			.isString()
+			.trim()
+			.isUUID()
+			.withMessage('Message id must be a valid UUID'),
+		param('emojiId')
+			.isString()
+			.trim()
+			.isUUID()
+			.withMessage('Emoji id must be a valid UUID'),
+		body('channelId')
+			.isString()
+			.trim()
+			.isUUID()
+			.withMessage('Channel id must be a valid UUID'),
+	],
+	validateData,
+	messageController.removeReaction
+);
+
 export default router;

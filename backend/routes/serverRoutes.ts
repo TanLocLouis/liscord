@@ -4,6 +4,7 @@ import serverController from '../controllers/serverController.js';
 import { authenticate } from '../middleware/authenticate.js';
 import validateData from '../middleware/validateData.js';
 import { iconUploadMiddleware } from '../middleware/avatarUploadMiddleware.js';
+import emojiRoutes from './emojiRoutes.js';
 
 const router = express.Router();
 
@@ -37,6 +38,9 @@ router.get('/joined', authenticate, serverController.getJoinedServers);
 
 // GET /api/servers/:serverId
 router.get('/:serverId', authenticate, serverController.getServerDetails);
+
+// /api/servers/:serverId/emojis
+router.use('/:serverId/emojis', emojiRoutes);
 
 
 // POST /api/servers/:serverId/invites

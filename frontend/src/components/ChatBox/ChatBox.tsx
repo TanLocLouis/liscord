@@ -7,6 +7,22 @@ import { io, type Socket } from "socket.io-client";
 import Input from "@components/Input/Input.js";
 import { motion } from "framer-motion";
 
+type MessageReaction = {
+    emojiId: string;
+    emojiName: string | null;
+    emojiUrl: string | null;
+    emojiUnicode: string | null;
+    count: number;
+    reactedByMe: boolean;
+};
+
+type ServerEmoji = {
+    emoji_id: string;
+    name: string;
+    image_url: string | null;
+    unicode: string | null;
+};
+
 type Member = {
     id: string;
     name: string;
@@ -18,6 +34,10 @@ interface ChatBoxProps {
         channelName: string;
         channelId: string;
     } | null;
+    serverInfo: {
+        serverName: string;
+        serverId: string;
+    } | null;
 }
 
 interface MessagePayload {
@@ -26,7 +46,7 @@ interface MessagePayload {
     replyTo: string;
 }
 
-const ChatBox = ( { channelInfo } : ChatBoxProps) => {
+const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     const authContext = useAuth();
     const activeChannelIdRef = useRef<string | null>(null);
 
@@ -43,6 +63,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [emitTyping, setEmitTyping] = useState(false);
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
+    const [serverEmojis, setServerEmojis] = useState<ServerEmoji[]>([]);
 
     // Scroll down button
     const [showScrollDown, setShowScrollDown] = useState(false);
@@ -88,6 +109,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 ? data.messages.map((message: ChatMessage) => ({
                     ...message,
                     avatar: message.avatar || toAvatar(message.user_name),
+                    reactions: Array.isArray(message.reactions) ? message.reactions : [],
                 }))
                 : [];
 
@@ -102,6 +124,41 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
     useEffect(() => {
         fetchMessages();
     }, [channelInfo?.channelId, authContext?.accessToken]);
+
+    useEffect(() => {
+        const fetchServerEmojis = async () => {
+            if (!serverInfo?.serverId) {
+                setServerEmojis([]);
+                return;
+            }
+
+            try {
+                const response = await fetchWithAuth(
+                    authContext,
+                    `${import.meta.env.VITE_API_URL}/api/servers/${serverInfo.serverId}/emojis`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${authContext?.accessToken}`,
+                        },
+                    }
+                );
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch server emojis");
+                }
+
+                const data = await response.json();
+                setServerEmojis(Array.isArray(data.emojis) ? data.emojis : []);
+            } catch (error) {
+                console.error("Error fetching server emojis:", error);
+                setServerEmojis([]);
+            }
+        };
+
+        fetchServerEmojis();
+    }, [serverInfo?.serverId, authContext?.accessToken]);
 
     // Socket
     useEffect(() => {
@@ -138,6 +195,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
 
             const normalizedMessage: ChatMessage = {
                 message_id: incomingMessage.message_id,
+                user_id: incomingMessage.user_id,
                 user_name: incomingMessage.user_name || "Unknown User",
                 avatar: incomingMessage.avatar || toAvatar(incomingMessage.user_name || "Unknown User"),
                 created_at: incomingMessage.created_at || new Date().toISOString(),
@@ -145,6 +203,7 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                 reply_to: incomingMessage.reply_to || null,
                 reply_to_content: incomingMessage.reply_to_content || null,
                 mine: incomingMessage.user_name && incomingMessage.user_name === authContext.userInfo?.username,
+                reactions: [],
             };
 
             setMessages((prev) => {
@@ -206,12 +265,12 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
 
         if (!emitTyping && inputValue !== "") {
             setEmitTyping(true);
-            socket?.emit("start_typing", { channelId: channelInfo?.channelId,  });
+            socket?.emit("start_typing", { channelId: channelInfo?.channelId });
         }
 
         if (inputValue === "") {
             setEmitTyping(false);
-            socket?.emit("stop_typing", { channelId: channelInfo?.channelId,  });
+            socket?.emit("stop_typing", { channelId: channelInfo?.channelId });
         }
     }, [inputRef.current?.value]);
 
@@ -300,6 +359,98 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
         inputRef.current?.focus();
     }
 
+    const patchMessageReaction = (messageId: string, emojiId: string, shouldAdd: boolean) => {
+        setMessages((prevMessages) => prevMessages.map((msg) => {
+            if (msg.message_id !== messageId) {
+                return msg;
+            }
+
+            const existingReactions = msg.reactions || [];
+            const current = existingReactions.find((reaction) => reaction.emojiId === emojiId);
+
+            if (shouldAdd) {
+                if (current) {
+                    return {
+                        ...msg,
+                        reactions: existingReactions.map((reaction) => (
+                            reaction.emojiId === emojiId
+                                ? { ...reaction, count: reaction.count + 1, reactedByMe: true }
+                                : reaction
+                        )),
+                    };
+                }
+
+                const emojiMeta = serverEmojis.find((emoji) => emoji.emoji_id === emojiId);
+                const nextReaction: MessageReaction = {
+                    emojiId,
+                    emojiName: emojiMeta?.name || null,
+                    emojiUrl: emojiMeta?.image_url || null,
+                    emojiUnicode: emojiMeta?.unicode || null,
+                    count: 1,
+                    reactedByMe: true,
+                };
+
+                return {
+                    ...msg,
+                    reactions: [...existingReactions, nextReaction],
+                };
+            }
+
+            if (!current) {
+                return msg;
+            }
+
+            return {
+                ...msg,
+                reactions: existingReactions
+                    .map((reaction) => (
+                        reaction.emojiId === emojiId
+                            ? { ...reaction, count: reaction.count - 1, reactedByMe: false }
+                            : reaction
+                    ))
+                    .filter((reaction) => reaction.count > 0),
+            };
+        }));
+    };
+
+    const handleReactMessage = async (message: ChatMessage, emojiId: string, reactedByMe: boolean) => {
+        if (!channelInfo?.channelId) {
+            return;
+        }
+
+        const shouldAdd = !reactedByMe;
+        patchMessageReaction(message.message_id, emojiId, shouldAdd);
+
+        try {
+            const endpoint = shouldAdd
+                ? `${import.meta.env.VITE_API_URL}/api/messages/${message.message_id}/reactions`
+                : `${import.meta.env.VITE_API_URL}/api/messages/${message.message_id}/reactions/${emojiId}`;
+
+            const response = await fetchWithAuth(
+                authContext,
+                endpoint,
+                {
+                    method: shouldAdd ? "POST" : "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${authContext?.accessToken}`,
+                    },
+                    body: JSON.stringify({
+                        channelId: channelInfo.channelId,
+                        ...(shouldAdd ? { emojiId } : {}),
+                    }),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Failed to update reaction");
+            }
+        } catch (error) {
+            console.error("Error reacting to message", error);
+            patchMessageReaction(message.message_id, emojiId, !shouldAdd);
+        }
+    };
+
     // Handle scroll down button
     useEffect(() => {
         const messageList = messageListRef.current;
@@ -365,7 +516,12 @@ const ChatBox = ( { channelInfo } : ChatBoxProps) => {
                                 {message.user_name === authContext.userInfo?.username && (
                                     <span className="left-[20px] top-[50px] text-[0.8em] text-[var(--color-primary)] opacity-80" aria-label="You">You</span>
                                 )}
-                                <MessageCard key={message.message_id} message={message}/>
+                                <MessageCard
+                                    key={message.message_id}
+                                    message={message}
+                                    availableEmojis={serverEmojis}
+                                    onReact={handleReactMessage}
+                                />
                             </div>
                             {/* Show reply button when hovering */}
                             <div className="hidden group-hover:flex justify-center items-center rounded-lg hover:bg-[var(--color-primary)]"

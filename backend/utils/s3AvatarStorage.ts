@@ -1,5 +1,7 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import crypto from 'crypto';
+import { readFile } from 'node:fs/promises';
+import { basename } from 'node:path';
 import AppError from './AppError.js';
 
 type UploadAvatarInput = {
@@ -87,7 +89,73 @@ async function uploadIconToS3({ userId, fileBuffer, mimeType }: UploadAvatarInpu
     const normalizedEndpoint = s3Endpoint.endsWith('/') ? s3Endpoint.slice(0, -1) : s3Endpoint;
     return `${normalizedEndpoint}/${awsBucket}/${objectKey}`;
 }
+
+async function uploadEmojiToS3({
+    serverId,
+    fileBuffer,
+    mimeType,
+    originalName,
+}: {
+    serverId: string;
+    fileBuffer: Buffer;
+    mimeType: string;
+    originalName?: string;
+}): Promise<string> {
+    if (!awsBucket) {
+        throw new AppError('AWS S3 is not configured', 500, 'AWS_S3_NOT_CONFIGURED');
+    }
+
+    const extension = extensionByMimeType[mimeType] || 'bin';
+    const uniqueSuffix = crypto.randomUUID();
+    const safeName = (originalName || 'emoji')
+        .replace(/\.[^/.]+$/, '')
+        .replace(/[^a-zA-Z0-9_-]/g, '-')
+        .slice(0, 60);
+    const keyPrefix = process.env.AWS_S3_EMOJI_PREFIX || 'emojis';
+    const objectKey = `${keyPrefix}/${serverId}-${safeName}-${uniqueSuffix}.${extension}`;
+
+    try {
+        await s3Client.send(new PutObjectCommand({
+            Bucket: awsBucket,
+            Key: objectKey,
+            Body: fileBuffer,
+            ContentType: mimeType,
+        }));
+    } catch (error) {
+        console.error('[ERROR] Failed uploading emoji to S3', error);
+        throw new AppError('Failed to upload emoji', 502, 'S3_UPLOAD_FAILED');
+    }
+
+    const normalizedEndpoint = s3Endpoint.endsWith('/') ? s3Endpoint.slice(0, -1) : s3Endpoint;
+    return `${normalizedEndpoint}/${awsBucket}/${objectKey}`;
+}
+
+async function uploadEmojiFileToS3(serverId: string, absoluteFilePath: string): Promise<string> {
+    const fileBuffer = await readFile(absoluteFilePath);
+    const fileName = basename(absoluteFilePath).toLowerCase();
+
+    let mimeType = 'application/octet-stream';
+    if (fileName.endsWith('.png')) {
+        mimeType = 'image/png';
+    } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+        mimeType = 'image/jpeg';
+    } else if (fileName.endsWith('.webp')) {
+        mimeType = 'image/webp';
+    } else if (fileName.endsWith('.gif')) {
+        mimeType = 'image/gif';
+    }
+
+    return uploadEmojiToS3({
+        serverId,
+        fileBuffer,
+        mimeType,
+        originalName: basename(absoluteFilePath),
+    });
+}
+
 export {
     uploadAvatarToS3,
     uploadIconToS3,
+    uploadEmojiToS3,
+    uploadEmojiFileToS3,
 };

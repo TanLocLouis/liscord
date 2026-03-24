@@ -32,7 +32,7 @@ const Home: React.FC = () => {
           <div className="h-screen m-0 pt-10 pb-10 flex">
             <Sidebar onServerInfoChanged={handleServerInfoChanged}/>
             <SidebarChannels serverInfo={currentServerInfo} onChannelInfoChanged={handleOnChannelInfoChanged}/>
-            <ChatBox channelInfo={currentChannelInfo}/>
+            <ChatBox channelInfo={currentChannelInfo} serverInfo={currentServerInfo}/>
           </div>
         </div>
       </motion.div>

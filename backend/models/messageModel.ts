@@ -24,6 +24,46 @@ export type Message = {
 	reply_to_content?: string | null;
 };
 
+export type ReactionCount = {
+	emoji_id: string;
+	count: number;
+};
+
+function normalizeCounterValue(value: unknown): number | null {
+	if (typeof value === 'number') {
+		return Number.isFinite(value) ? value : null;
+	}
+
+	if (typeof value === 'bigint') {
+		return Number(value);
+	}
+
+	if (typeof value === 'string') {
+		const parsed = Number(value);
+		return Number.isFinite(parsed) ? parsed : null;
+	}
+
+	if (value && typeof value === 'object' && 'toNumber' in value) {
+		const maybeCounter = value as { toNumber?: () => number };
+		if (typeof maybeCounter.toNumber === 'function') {
+			const parsed = maybeCounter.toNumber();
+			return Number.isFinite(parsed) ? parsed : null;
+		}
+	}
+
+	return null;
+}
+
+function wasApplied(result: { first: () => Record<string, unknown> | null }): boolean {
+	const firstRow = result.first();
+	if (!firstRow) {
+		return false;
+	}
+
+	const applied = firstRow['[applied]'];
+	return applied === true;
+}
+
 const messageModel = {
 	async createMessage(messageData: CreateMessageInput): Promise<void> {
 		const query = `
@@ -99,6 +139,131 @@ const messageModel = {
 			reply_to_content: row.reply_to_content ? row.reply_to_content.toString() : null,
 			// reply_to_content: row.reply_to_content.toString() || null,
 		}));
+	},
+
+	async addReaction(messageId: string, emojiId: string, userId: string): Promise<boolean> {
+		const insertReactionQuery = `
+			INSERT INTO liscord.reactions_by_message (message_id, emoji_id, user_id, created_at)
+			VALUES (?, ?, ?, toTimestamp(now()))
+			IF NOT EXISTS
+		`;
+
+		const insertReactionResult = await client.execute(
+			insertReactionQuery,
+			[
+				types.Uuid.fromString(messageId),
+				emojiId,
+				types.Uuid.fromString(userId),
+			],
+			{ prepare: true }
+		);
+
+		if (!wasApplied(insertReactionResult)) {
+			return false;
+		}
+
+		await client.execute(
+			`UPDATE liscord.reaction_counts
+			 SET count = count + 1
+			 WHERE message_id = ? AND emoji_id = ?`,
+			[types.Uuid.fromString(messageId), emojiId],
+			{ prepare: true }
+		);
+
+		await client.execute(
+			`INSERT INTO liscord.reactions_by_user (user_id, message_id, emoji_id, created_at)
+			 VALUES (?, ?, ?, toTimestamp(now()))`,
+			[
+				types.Uuid.fromString(userId),
+				types.Uuid.fromString(messageId),
+				emojiId,
+			],
+			{ prepare: true }
+		);
+
+		return true;
+	},
+
+	async removeReaction(messageId: string, emojiId: string, userId: string): Promise<boolean> {
+		const deleteReactionQuery = `
+			DELETE FROM liscord.reactions_by_message
+			WHERE message_id = ? AND emoji_id = ? AND user_id = ?
+			IF EXISTS
+		`;
+
+		const deleteReactionResult = await client.execute(
+			deleteReactionQuery,
+			[
+				types.Uuid.fromString(messageId),
+				emojiId,
+				types.Uuid.fromString(userId),
+			],
+			{ prepare: true }
+		);
+
+		if (!wasApplied(deleteReactionResult)) {
+			return false;
+		}
+
+		await client.execute(
+			`UPDATE liscord.reaction_counts
+			 SET count = count - 1
+			 WHERE message_id = ? AND emoji_id = ?`,
+			[types.Uuid.fromString(messageId), emojiId],
+			{ prepare: true }
+		);
+
+		await client.execute(
+			`DELETE FROM liscord.reactions_by_user
+			 WHERE user_id = ? AND message_id = ? AND emoji_id = ?`,
+			[
+				types.Uuid.fromString(userId),
+				types.Uuid.fromString(messageId),
+				emojiId,
+			],
+			{ prepare: true }
+		);
+
+		return true;
+	},
+
+	async getReactionCounts(messageId: string): Promise<ReactionCount[]> {
+		const result = await client.execute(
+			`SELECT emoji_id, count
+			 FROM liscord.reaction_counts
+			 WHERE message_id = ?`,
+			[types.Uuid.fromString(messageId)],
+			{ prepare: true }
+		);
+
+		return result.rows
+			.map((row) => {
+				const normalizedCount = normalizeCounterValue(row.count);
+				if (!normalizedCount || normalizedCount <= 0) {
+					return null;
+				}
+
+				return {
+					emoji_id: row.emoji_id as string,
+					count: normalizedCount,
+				};
+			})
+			.filter((row): row is ReactionCount => row !== null);
+	},
+
+	async getUserReactedEmojiIds(messageId: string, userId: string): Promise<string[]> {
+		const result = await client.execute(
+			`SELECT emoji_id
+			 FROM liscord.reactions_by_message
+			 WHERE message_id = ?`,
+			[types.Uuid.fromString(messageId)],
+			{ prepare: true }
+		);
+
+		const normalizedUserId = userId.toLowerCase();
+		return result.rows
+			.filter((row) => row.user_id?.toString().toLowerCase() === normalizedUserId)
+			.map((row) => row.emoji_id as string);
 	},
 };
 

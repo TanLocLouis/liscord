@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import ServerNameEditor from "./ServerNameEditor.js";
 import ServerIconEditor from "./ServerIconEditor.js";
+import ServerEmojiManager from "./ServerEmojiManager.js";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 import  { useAuth } from "@contexts/AuthContext.jsx";
 
@@ -103,6 +104,8 @@ const ServerSettings: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <ServerEmojiManager serverId={serverId} />
         </motion.div>
     )
 }

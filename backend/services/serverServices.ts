@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import AppError from '../utils/AppError.js';
 import serverModel from '../models/serverModel.js';
 import { uploadAvatarToS3, uploadIconToS3 } from '../utils/s3AvatarStorage.js';
+import emojiServices from './emojiServices.js';
 
 type CreateServerPayload = {
 	serverName: string;
@@ -59,6 +60,9 @@ async function createServer(ownerId: string, payload: CreateServerPayload) {
 
 	// Add owner as a member of the server
 	await serverModel.createServerMember(serverId, ownerId);
+
+	// Seed default server emojis from tools/minio/emojis
+	await emojiServices.seedDefaultServerEmojis(serverId);
 
 	return {
 		serverId,

@@ -48,7 +48,77 @@ const getChannelMessages = asyncHandler(async (req, res) => {
 	res.status(200).json(result);
 });
 
+const addReaction = asyncHandler(async (req, res) => {
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const { messageId } = req.params;
+	if (!messageId || typeof messageId !== 'string') {
+		throw new AppError('Message id is required', 400, 'INVALID_MESSAGE_ID');
+	}
+
+	const { channelId, emojiId } = req.body as { channelId?: string; emojiId?: string };
+	if (!channelId || !emojiId) {
+		throw new AppError('Channel id and emoji id are required', 400, 'INVALID_REACTION_INPUT');
+	}
+
+	const result = await messageServices.addReaction(req.user.user_id, {
+		messageId,
+		channelId,
+		emojiId,
+	});
+
+	res.status(200).json(result);
+});
+
+const removeReaction = asyncHandler(async (req, res) => {
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const { messageId, emojiId } = req.params;
+	if (!messageId || typeof messageId !== 'string' || !emojiId || typeof emojiId !== 'string') {
+		throw new AppError('Message id and emoji id are required', 400, 'INVALID_REACTION_INPUT');
+	}
+
+	const { channelId } = req.body as { channelId?: string };
+	if (!channelId) {
+		throw new AppError('Channel id is required', 400, 'INVALID_CHANNEL_ID');
+	}
+
+	const result = await messageServices.removeReaction(req.user.user_id, {
+		messageId,
+		channelId,
+		emojiId,
+	});
+
+	res.status(200).json(result);
+});
+
+const getMessageReactions = asyncHandler(async (req, res) => {
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const { messageId } = req.params;
+	if (!messageId || typeof messageId !== 'string') {
+		throw new AppError('Message id is required', 400, 'INVALID_MESSAGE_ID');
+	}
+
+	const channelId = req.query.channelId;
+	if (!channelId || typeof channelId !== 'string') {
+		throw new AppError('Channel id is required', 400, 'INVALID_CHANNEL_ID');
+	}
+
+	const result = await messageServices.getMessageReactions(req.user.user_id, messageId, channelId);
+	res.status(200).json(result);
+});
+
 export default {
 	createMessage,
 	getChannelMessages,
+	addReaction,
+	removeReaction,
+	getMessageReactions,
 };
