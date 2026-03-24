@@ -101,7 +101,7 @@ const CreateInvite = (props: CreateInviteProps) => {
   return (
     <div className="fixed z-10">
       <div className="fixed top-0 left-0 h-full w-full bg-black-1 backdrop-blur-sm"></div>
-      <div className="fixed top-1/2 left-1/2 w-[420px] max-w-[95vw] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[var(--color-secondary)]">
+      <div className="fixed top-1/2 left-1/2 w-[420px] max-w-[95vw] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-[var(--color-secondary)] border border-[var(--color-primary)]">
         <form className="m-5 flex flex-col" onSubmit={handleCreateInviteSubmitted}>
           <div className="mb-4 flex items-center justify-between">
             <h1 className="text-2xl text-[var(--color-text-primary)]">Create Invite Link</h1>

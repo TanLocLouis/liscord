@@ -6,15 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
 import Input from "@components/Input/Input.js";
 import { motion } from "framer-motion";
-
-type MessageReaction = {
-    emojiId: string;
-    emojiName: string | null;
-    emojiUrl: string | null;
-    emojiUnicode: string | null;
-    count: number;
-    reactedByMe: boolean;
-};
+import {
+    requestBrowserNotificationPermission,
+    showIncomingMessageBrowserNotification,
+} from "./browserNotification.js";
+import { updateMessagesWithReaction } from "./messageReaction.js";
 
 type ServerEmoji = {
     emoji_id: string;
@@ -87,6 +83,17 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     useEffect(() => {
         activeChannelIdRef.current = channelInfo?.channelId ?? null;
     }, [channelInfo?.channelId]);
+
+    // Ask notification permission once after authentication.
+    useEffect(() => {
+        if (!authContext?.accessToken) {
+            return;
+        }
+
+        requestBrowserNotificationPermission().catch((error) => {
+            console.warn("Failed to request notification permission", error);
+        });
+    }, [authContext?.accessToken]);
 
     // Fetch message history when channel changes
     const fetchMessages = async () => {
@@ -229,6 +236,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                 if (normalizedMessage.user_name !== authContext.userInfo?.username) {
                     notificationSound.currentTime = 0;
                     notificationSound.play();
+                    showIncomingMessageBrowserNotification(incomingMessage, channelInfo?.channelName || "general");
                 }
                 return [normalizedMessage, ...prev];
             });
@@ -258,7 +266,14 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             }
 
             const isMine = payload.userId === authContext.userInfo?.user_id;
-            patchMessageReaction(payload.messageId, payload.emojiId, payload.action === "added", isMine);
+            setMessages((prevMessages) => updateMessagesWithReaction(
+                prevMessages,
+                payload.messageId,
+                payload.emojiId,
+                payload.action === "added",
+                isMine,
+                serverEmojisRef.current,
+            ));
         });
 
         return () => {
@@ -383,65 +398,6 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
         inputRef.current?.focus();
     }
 
-    const patchMessageReaction = (
-        messageId: string,
-        emojiId: string,
-        shouldAdd: boolean,
-        affectMine: boolean,
-    ) => {
-        setMessages((prevMessages) => prevMessages.map((msg) => {
-            if (msg.message_id !== messageId) {
-                return msg;
-            }
-
-            const existingReactions = msg.reactions || [];
-            const current = existingReactions.find((reaction) => reaction.emojiId === emojiId);
-
-            if (shouldAdd) {
-                if (current) {
-                    return {
-                        ...msg,
-                        reactions: existingReactions.map((reaction) => (
-                            reaction.emojiId === emojiId
-                                ? { ...reaction, count: reaction.count + 1, reactedByMe: affectMine ? true : reaction.reactedByMe }
-                                : reaction
-                        )),
-                    };
-                }
-
-                const emojiMeta = serverEmojisRef.current.find((emoji) => emoji.emoji_id === emojiId);
-                const nextReaction: MessageReaction = {
-                    emojiId,
-                    emojiName: emojiMeta?.name || null,
-                    emojiUrl: emojiMeta?.image_url || null,
-                    emojiUnicode: emojiMeta?.unicode || null,
-                    count: 1,
-                    reactedByMe: affectMine,
-                };
-
-                return {
-                    ...msg,
-                    reactions: [...existingReactions, nextReaction],
-                };
-            }
-
-            if (!current) {
-                return msg;
-            }
-
-            return {
-                ...msg,
-                reactions: existingReactions
-                    .map((reaction) => (
-                        reaction.emojiId === emojiId
-                            ? { ...reaction, count: reaction.count - 1, reactedByMe: affectMine ? false : reaction.reactedByMe }
-                            : reaction
-                    ))
-                    .filter((reaction) => reaction.count > 0),
-            };
-        }));
-    };
-
     const handleReactMessage = async (message: ChatMessage, emojiId: string, reactedByMe: boolean) => {
         if (!channelInfo?.channelId) {
             return;
@@ -459,7 +415,14 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             return;
         }
 
-        patchMessageReaction(message.message_id, emojiId, shouldAdd, true);
+        setMessages((prevMessages) => updateMessagesWithReaction(
+            prevMessages,
+            message.message_id,
+            emojiId,
+            shouldAdd,
+            true,
+            serverEmojisRef.current,
+        ));
 
         try {
             const endpoint = shouldAdd
@@ -487,7 +450,14 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             }
         } catch (error) {
             console.error("Error reacting to message", error);
-            patchMessageReaction(message.message_id, emojiId, !shouldAdd, true);
+            setMessages((prevMessages) => updateMessagesWithReaction(
+                prevMessages,
+                message.message_id,
+                emojiId,
+                !shouldAdd,
+                true,
+                serverEmojisRef.current,
+            ));
         }
     };
 
@@ -571,29 +541,6 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                         </div>
                     ))}
                 </div>
-
-                {/* <aside className="border-l border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] px-[0.9rem] py-4 bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_78%,transparent)] max-[1080px]:hidden" aria-label="Members list">
-                    <h3 className="text-[0.95rem] mb-3">Members</h3>
-                    <ul className="list-none grid gap-[0.55rem]">
-                        {members.map((member) => (
-                            <li key={member.id} className="flex items-center gap-[0.55rem] text-[0.87rem]">
-                                <span
-                                    className={`w-[9px] h-[9px] rounded-full ${
-                                        member.status === "online"
-                                            ? "bg-[var(--color-success)]"
-                                            : member.status === "idle"
-                                              ? "bg-[var(--color-warning)]"
-                                              : member.status === "dnd"
-                                                ? "bg-[var(--color-error)]"
-                                                : "bg-[var(--color-gray-500)]"
-                                    }`}
-                                    aria-hidden="true"
-                                />
-                                <span>{member.name}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </aside> */}
             </div>
 
             {/* Scroll down button */}
