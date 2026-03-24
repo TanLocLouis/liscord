@@ -72,6 +72,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     const [emitTyping, setEmitTyping] = useState(false);
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
     const [serverEmojis, setServerEmojis] = useState<ServerEmoji[]>([]);
+    const serverEmojisRef = useRef<ServerEmoji[]>([]);
 
     // Scroll down button
     const [showScrollDown, setShowScrollDown] = useState(false);
@@ -132,6 +133,10 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     useEffect(() => {
         fetchMessages();
     }, [channelInfo?.channelId, authContext?.accessToken]);
+
+    useEffect(() => {
+        serverEmojisRef.current = serverEmojis;
+    }, [serverEmojis]);
 
     useEffect(() => {
         const fetchServerEmojis = async () => {
@@ -238,6 +243,10 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             console.error("Socket connect error:", error.message);
         });
 
+        socket.on("disconnect", (reason) => {
+            console.warn("Socket disconnected:", reason);
+        });
+
         // Get a list of user is typing
         socket?.on("typing_users", (typingUsers: string[]) => {
             setTypingUsers(typingUsers);
@@ -255,7 +264,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
         return () => {
             socket.disconnect();
         };
-    }, [authContext?.accessToken, authContext?.userInfo?.username, authContext?.userInfo?.user_id, serverEmojis]);
+    }, [authContext?.accessToken, authContext?.userInfo?.username, authContext?.userInfo?.user_id]);
 
 
     // Join chat room
@@ -400,7 +409,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                     };
                 }
 
-                const emojiMeta = serverEmojis.find((emoji) => emoji.emoji_id === emojiId);
+                const emojiMeta = serverEmojisRef.current.find((emoji) => emoji.emoji_id === emojiId);
                 const nextReaction: MessageReaction = {
                     emojiId,
                     emojiName: emojiMeta?.name || null,

@@ -7,10 +7,10 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   
-  const { refreshToken } = useAuth();
+  const { refreshToken, userInfo } = useAuth();
   // If no access token or user info, redirect to login
 
-  if (!refreshToken) {
+  if (!refreshToken || !userInfo) {
     return <Navigate to="/login" replace />;
   }
 

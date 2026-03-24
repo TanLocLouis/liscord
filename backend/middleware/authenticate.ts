@@ -3,22 +3,20 @@ import type { RequestHandler } from 'express';
 import AppError from '../utils/AppError.js';
 
 const authenticate: RequestHandler = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-
-    // if (!authHeader) {
-    //     return next(); // No token provided, proceed as guest
-    // }
-
-    const token = authHeader.split(' ')[1];
-    // if (!token) {
-    //     return next(); // No token provided, proceed as guest
-    // }
+    const token = req.headers['authorization']?.split(' ')[1];
     
+    // Check if token is provided
+    if (!token) {
+        return res.status(401).json({ message: 'No token provided' });
+    }
+
+    // Check if JWT secret is configured
     const jwtSecret = process.env.JWT_ACCESS_TOKEN_SECRET;
     if (!jwtSecret) {
         throw new AppError('JWT secret is not configured', 500, 'JWT_SECRET_MISSING');
     }
 
+    // Verify token; if valid, attach user info to request object
     jwt.verify(token, jwtSecret, (err, user) => {
         if (err) {
             // console.log('[STATUS] Invalid token ', err);
