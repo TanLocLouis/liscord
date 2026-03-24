@@ -12,6 +12,12 @@ type SendMessagePayload = {
 	replyToContent?: string | null;
 };
 
+type ReactionPayload = {
+	channelId?: string;
+	messageId?: string;
+	emojiId?: string;
+};
+
 const typingUsers: Record<string, Set<string>> = {};
 
 const chatSocket = (io: SocketIOServer, socket: Socket) => {
@@ -69,10 +75,93 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 	socket.on('disconnect', () => {
 		// Clean up typing users on disconnect
 		for (const channelId in typingUsers) {
-			if (typingUsers[channelId].has(authUser?.username ?? '')) {
-				typingUsers[channelId].delete(authUser?.username ?? '');
-				io.to(channelId).emit('typing_users', Array.from(typingUsers[channelId]));
+			const channelTypingUsers = typingUsers[channelId];
+			if (!channelTypingUsers) {
+				continue;
 			}
+
+			if (channelTypingUsers.has(authUser?.username ?? '')) {
+				channelTypingUsers.delete(authUser?.username ?? '');
+				io.to(channelId).emit('typing_users', Array.from(channelTypingUsers));
+			}
+		}
+	});
+
+	socket.on('add_reaction', async (data: ReactionPayload) => {
+		try {
+			if (!authUser?.userId) {
+				socket.emit('socket_error', { message: 'Unauthorized' });
+				return;
+			}
+
+			const channelId = typeof data?.channelId === 'string' ? data.channelId.trim() : '';
+			const messageId = typeof data?.messageId === 'string' ? data.messageId.trim() : '';
+			const emojiId = typeof data?.emojiId === 'string' ? data.emojiId.trim() : '';
+
+			if (!channelId || !messageId || !emojiId) {
+				socket.emit('socket_error', { message: 'channelId, messageId and emojiId are required' });
+				return;
+			}
+
+			const result = await messageServices.addReaction(authUser.userId, {
+				channelId,
+				messageId,
+				emojiId,
+			});
+
+			if (!result.created) {
+				return;
+			}
+
+			io.to(channelId).emit('reaction_updated', {
+				action: 'added',
+				channelId,
+				messageId,
+				emojiId,
+				userId: authUser.userId,
+			});
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Failed to add reaction';
+			socket.emit('socket_error', { message });
+		}
+	});
+
+	socket.on('remove_reaction', async (data: ReactionPayload) => {
+		try {
+			if (!authUser?.userId) {
+				socket.emit('socket_error', { message: 'Unauthorized' });
+				return;
+			}
+
+			const channelId = typeof data?.channelId === 'string' ? data.channelId.trim() : '';
+			const messageId = typeof data?.messageId === 'string' ? data.messageId.trim() : '';
+			const emojiId = typeof data?.emojiId === 'string' ? data.emojiId.trim() : '';
+
+			if (!channelId || !messageId || !emojiId) {
+				socket.emit('socket_error', { message: 'channelId, messageId and emojiId are required' });
+				return;
+			}
+
+			const result = await messageServices.removeReaction(authUser.userId, {
+				channelId,
+				messageId,
+				emojiId,
+			});
+
+			if (!result.removed) {
+				return;
+			}
+
+			io.to(channelId).emit('reaction_updated', {
+				action: 'removed',
+				channelId,
+				messageId,
+				emojiId,
+				userId: authUser.userId,
+			});
+		} catch (error) {
+			const message = error instanceof Error ? error.message : 'Failed to remove reaction';
+			socket.emit('socket_error', { message });
 		}
 	});
 

@@ -46,6 +46,14 @@ interface MessagePayload {
     replyTo: string;
 }
 
+type ReactionUpdatedPayload = {
+    action: "added" | "removed";
+    channelId: string;
+    messageId: string;
+    emojiId: string;
+    userId: string;
+};
+
 const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     const authContext = useAuth();
     const activeChannelIdRef = useRef<string | null>(null);
@@ -235,10 +243,19 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             setTypingUsers(typingUsers);
         });
 
+        socket.on("reaction_updated", (payload: ReactionUpdatedPayload) => {
+            if (!payload || payload.channelId !== activeChannelIdRef.current) {
+                return;
+            }
+
+            const isMine = payload.userId === authContext.userInfo?.user_id;
+            patchMessageReaction(payload.messageId, payload.emojiId, payload.action === "added", isMine);
+        });
+
         return () => {
             socket.disconnect();
         };
-    }, [authContext?.accessToken, authContext?.userInfo?.username]);
+    }, [authContext?.accessToken, authContext?.userInfo?.username, authContext?.userInfo?.user_id, serverEmojis]);
 
 
     // Join chat room
@@ -299,8 +316,6 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                     replyToContent: isReplying ? isReplying.content : undefined,
                 });
 
-                console.log("[DEBUG] ", authContext.userInfo.avatar);
-
                 setMessageInput({
                     channelId: "",
                     content: "",
@@ -359,7 +374,12 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
         inputRef.current?.focus();
     }
 
-    const patchMessageReaction = (messageId: string, emojiId: string, shouldAdd: boolean) => {
+    const patchMessageReaction = (
+        messageId: string,
+        emojiId: string,
+        shouldAdd: boolean,
+        affectMine: boolean,
+    ) => {
         setMessages((prevMessages) => prevMessages.map((msg) => {
             if (msg.message_id !== messageId) {
                 return msg;
@@ -374,7 +394,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                         ...msg,
                         reactions: existingReactions.map((reaction) => (
                             reaction.emojiId === emojiId
-                                ? { ...reaction, count: reaction.count + 1, reactedByMe: true }
+                                ? { ...reaction, count: reaction.count + 1, reactedByMe: affectMine ? true : reaction.reactedByMe }
                                 : reaction
                         )),
                     };
@@ -387,7 +407,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                     emojiUrl: emojiMeta?.image_url || null,
                     emojiUnicode: emojiMeta?.unicode || null,
                     count: 1,
-                    reactedByMe: true,
+                    reactedByMe: affectMine,
                 };
 
                 return {
@@ -405,7 +425,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                 reactions: existingReactions
                     .map((reaction) => (
                         reaction.emojiId === emojiId
-                            ? { ...reaction, count: reaction.count - 1, reactedByMe: false }
+                            ? { ...reaction, count: reaction.count - 1, reactedByMe: affectMine ? false : reaction.reactedByMe }
                             : reaction
                     ))
                     .filter((reaction) => reaction.count > 0),
@@ -419,7 +439,18 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
         }
 
         const shouldAdd = !reactedByMe;
-        patchMessageReaction(message.message_id, emojiId, shouldAdd);
+        const socket = socketRef.current;
+
+        if (socket?.connected) {
+            socket.emit(shouldAdd ? "add_reaction" : "remove_reaction", {
+                channelId: channelInfo.channelId,
+                messageId: message.message_id,
+                emojiId,
+            });
+            return;
+        }
+
+        patchMessageReaction(message.message_id, emojiId, shouldAdd, true);
 
         try {
             const endpoint = shouldAdd
@@ -447,7 +478,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             }
         } catch (error) {
             console.error("Error reacting to message", error);
-            patchMessageReaction(message.message_id, emojiId, !shouldAdd);
+            patchMessageReaction(message.message_id, emojiId, !shouldAdd, true);
         }
     };
 
@@ -589,7 +620,11 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                         <h3 className="">Replying to this message</h3>
                         <svg onClick={() => {setIsReplying(false)}} xmlns="http://www.w3.org/2000/svg" width="1.5em" fill="var(--color-primary)" viewBox="0 0 640 640"><path d="M504.6 148.5C515.9 134.9 514.1 114.7 500.5 103.4C486.9 92.1 466.7 93.9 455.4 107.5L320 270L184.6 107.5C173.3 93.9 153.1 92.1 139.5 103.4C125.9 114.7 124.1 134.9 135.4 148.5L278.3 320L135.4 491.5C124.1 505.1 125.9 525.3 139.5 536.6C153.1 547.9 173.3 546.1 184.6 532.5L320 370L455.4 532.5C466.7 546.1 486.9 547.9 500.5 536.6C514.1 525.3 515.9 505.1 504.6 491.5L361.7 320L504.6 148.5z"/></svg>
                     </div>
-                    <MessageCard message={isReplying} />
+                    <MessageCard
+                        message={isReplying}
+                        availableEmojis={serverEmojis}
+                        onReact={handleReactMessage}
+                    />
                 </div>
                 </>
             )}
