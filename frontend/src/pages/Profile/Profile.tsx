@@ -116,7 +116,7 @@ const Profile: React.FC = () => {
         >
             <div className="profile-top-section">
                 <div className="h-[250px] w-full rounded-lg bg-[radial-gradient(circle_at_10%_50%,rgba(133,132,212,0.432)_10%,transparent_30%)]">
-                    <div className="relative z-0 left-[30px] top-20 flex items-center gap-4">
+                    <div className="relative z-0 ml-[30px] top-20 flex items-center gap-4">
                         <div 
                             onClick={handleAvatarClick}
                             className="group relative flex h-[150px] w-[150px] cursor-pointer items-center justify-center rounded-2xl border-[3px] border-[var(--color-primary)] shadow-[0_2px_10px_var(--color-primary)] transition-all hover:opacity-80"

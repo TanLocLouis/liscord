@@ -35,7 +35,7 @@ const ContextMenu = ( { menu, closeMenu } : ContextMenuProps ) => {
             }}
             onMouseLeave={closeMenu}
         >
-            <li onClick={handleServerSettingsClick} className="cursor-pointer mt-1 p-2 border rounded border-[var(--color-primary)] hover:bg-[var(--color-primary)]">Server Settings</li>
+            <li onClick={handleServerSettingsClick} className="cursor-pointer mt-1 p-2 rounded hover:bg-[var(--color-primary)]">Server Settings</li>
         </ul>
     )
 }

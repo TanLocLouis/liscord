@@ -23,3 +23,6 @@
 - Socket is not realiable so when
     + Send through Socket => Database, if failed, send to Database
     + Receive from Socket, if failed, receive from Database
+    + Using reconnection in socket to make it will try to reconnect
+
+- Implement E2E using Group key.

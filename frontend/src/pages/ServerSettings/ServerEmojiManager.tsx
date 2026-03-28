@@ -121,7 +121,7 @@ const ServerEmojiManager: React.FC<ServerEmojiManagerProps> = ({ serverId }) => 
     };
 
     return (
-        <section className="mt-8 rounded-xl border border-[var(--color-primary)] bg-[color:color-mix(in_oklab,var(--color-secondary)_82%,transparent)] p-4">
+        <section className="rounded-xl border border-[var(--color-primary)] bg-[color:color-mix(in_oklab,var(--color-secondary)_82%,transparent)] p-4">
             <div className="flex flex-wrap items-end gap-3">
                 <div className="min-w-[220px] flex-1">
                     <label className="text-sm text-[var(--color-text-secondary)]">New emoji name</label>

@@ -7,8 +7,11 @@ import ServerEmojiManager from "./ServerEmojiManager.js";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 import  { useAuth } from "@contexts/AuthContext.jsx";
 
+type ServerSettingsTab = "general" | "emoji";
+
 const ServerSettings: React.FC = () => {
     const { serverId } = useParams();
+    const [activeTab, setActiveTab] = useState<ServerSettingsTab>("general");
 
     const [serverData, setServerData] = useState({
         server_name: "Example Server",
@@ -58,6 +61,19 @@ const ServerSettings: React.FC = () => {
         return date.toLocaleDateString();
     }
 
+    const settingsTabs: { key: ServerSettingsTab; label: string; description: string }[] = [
+        {
+            key: "general",
+            label: "General",
+            description: "Server basics and details",
+        },
+        {
+            key: "emoji",
+            label: "Emoji",
+            description: "Upload and manage custom emojis",
+        },
+    ];
+
     return (
         <motion.div
             initial={{ transform: 'translateY(5%)', opacity: 0 }}
@@ -66,7 +82,7 @@ const ServerSettings: React.FC = () => {
         >
             <div className="profile-top-section">
                 <div className="h-[250px] w-full rounded-lg bg-[radial-gradient(circle_at_10%_50%,rgba(133,132,212,0.432)_10%,transparent_30%)]">
-                    <div className="relative left-[30px] top-20 flex items-center gap-4">
+                    <div className="relative ml-[30px] top-20 flex items-center gap-4">
                         <ServerIconEditor
                             serverId={serverId}
                             iconUrl={serverData.icon}
@@ -105,7 +121,62 @@ const ServerSettings: React.FC = () => {
                 </div>
             </div>
 
-            <ServerEmojiManager serverId={serverId} />
+            {/* Tab Navigation */}
+            <div className="mt-8 grid grid-cols-1 gap-4 lg:grid-cols-[280px_minmax(0,1fr)] mx-2">
+                <aside className="h-fit rounded-xl border border-[var(--color-primary)] bg-[color:color-mix(in_oklab,var(--color-secondary)_82%,transparent)] p-3">
+                    <p className="px-1 pb-3 text-sm font-semibold tracking-wide text-[var(--color-text-secondary)] uppercase">
+                        Server Settings
+                    </p>
+
+                    <nav className="flex flex-col gap-2">
+                        {settingsTabs.map((tab) => {
+                            const isActive = activeTab === tab.key;
+
+                            return (
+                                <button
+                                    key={tab.key}
+                                    type="button"
+                                    onClick={() => setActiveTab(tab.key)}
+                                    className={`rounded-lg border px-3 py-2 text-left transition-all ${
+                                        isActive
+                                            ? "border-[var(--color-primary)] bg-[var(--color-primary)]/25"
+                                            : "border-transparent bg-black/10 hover:border-[var(--color-primary)]/70"
+                                    }`}
+                                >
+                                    <p className="text-sm font-semibold text-[var(--color-text-primary)]">{tab.label}</p>
+                                    <p className="mt-0.5 text-xs text-[var(--color-text-secondary)]">{tab.description}</p>
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </aside>
+
+                {/* Tab Content */}
+                <section>
+                    {activeTab === "general" && (
+                        <div className="rounded-xl border border-[var(--color-primary)] bg-[color:color-mix(in_oklab,var(--color-secondary)_82%,transparent)] p-4">
+                            <h3 className="text-[1rem] font-semibold text-[var(--color-text-secondary)]">General Overview</h3>
+                            <div className="mt-3 space-y-2 text-sm text-[var(--color-text-primary)]">
+                                <p>
+                                    <span className="font-semibold">Server name:</span> {serverData.server_name || "N/A"}
+                                </p>
+                                <p>
+                                    <span className="font-semibold">Description:</span> {serverData.description || "No description"}
+                                </p>
+                                <p>
+                                    <span className="font-semibold">Members:</span> {serverData.member_count ?? "N/A"}
+                                </p>
+                                <p>
+                                    <span className="font-semibold">Created:</span>{" "}
+                                    {serverData.created_at ? convertToDateString(serverData.created_at) : "N/A"}
+                                </p>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === "emoji" && <ServerEmojiManager serverId={serverId} />}
+                </section>
+            </div>
         </motion.div>
     )
 }
