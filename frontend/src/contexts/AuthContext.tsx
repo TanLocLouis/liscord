@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "./ToastContext.js";
+import { redirect } from "react-router";
 
 interface AuthContextType {
     signup: (SignUpForm: {username: string, email: string, password: string}) => Promise<boolean>;
@@ -109,6 +110,7 @@ const AuthProvider = ( { children }: { children: React.ReactNode } ) => {
             return true;
         } catch {
             console.error("Failed to refresh token");
+            logout();
 
             return false;
         }

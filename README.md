@@ -6,10 +6,12 @@ This is my pet project offers group chat solution for people, friend, gaming, et
 1. What has been done
 - Create, manage Server and Channel.
 - Real-time chat.
+- Push notification on browser.
 - Invite people with invite link.
 - Create account, manage account.
+- React, add custom emoji to server.
 
-![Home](docs/img/home.png)
+![Home](docs/img/home_20260331.png)
 
 ---
 

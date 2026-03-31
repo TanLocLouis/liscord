@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.2] - 2026-03-31
+- React, add custom emoji to server.
+- Push notification message.
+- Fix some WebSocket bug in real-time messaging.
+- Improve overall UI/UX.
+
 ## [1.1.1] - 2026-03-17
 - Refactor code
 - Create profile' bio.
