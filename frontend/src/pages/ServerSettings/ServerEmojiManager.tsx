@@ -24,6 +24,7 @@ const ServerEmojiManager: React.FC<ServerEmojiManagerProps> = ({ serverId }) => 
     const [emojis, setEmojis] = useState<ServerEmoji[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const [emojiName, setEmojiName] = useState("");
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -120,6 +121,44 @@ const ServerEmojiManager: React.FC<ServerEmojiManagerProps> = ({ serverId }) => 
         }
     };
 
+    const handleDeleteEmoji = async (emojiId: string) => {
+        if (!serverId) {
+            addToast("error", "Invalid server id");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to delete this emoji? It can affect your server chat reactions.")) {
+            return;
+        }
+
+        try {
+            setDeletingId(emojiId);
+            const res = await fetchWithAuth(
+                authContext,
+                `${import.meta.env.VITE_API_URL}/api/servers/${serverId}/emojis/${emojiId}`,
+                {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${authContext?.accessToken}`,
+                    },
+                }
+            );
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData?.message || "Failed to delete emoji");
+            }
+
+            addToast("success", "Emoji deleted");
+            await fetchServerEmojis();
+        } catch (error) {
+            console.error("Error deleting emoji", error);
+            addToast("error", error instanceof Error ? error.message : "Failed to delete emoji");
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     return (
         <section className="rounded-xl border border-[var(--color-primary)] bg-[color:color-mix(in_oklab,var(--color-secondary)_82%,transparent)] p-4">
             <div className="flex flex-wrap items-end gap-3">
@@ -166,8 +205,21 @@ const ServerEmojiManager: React.FC<ServerEmojiManagerProps> = ({ serverId }) => 
                         {emojis.map((emoji) => (
                             <div
                                 key={emoji.emoji_id}
-                                className="rounded-lg border border-[color:color-mix(in_oklab,var(--color-text-primary)_20%,transparent)] bg-[color:color-mix(in_oklab,var(--color-secondary)_86%,transparent)] p-2"
+                                className="group relative rounded-lg border border-[color:color-mix(in_oklab,var(--color-text-primary)_20%,transparent)] bg-[color:color-mix(in_oklab,var(--color-secondary)_86%,transparent)] p-2"
                             >
+                                <button
+                                    onClick={() => handleDeleteEmoji(emoji.emoji_id)}
+                                    disabled={deletingId === emoji.emoji_id}
+                                    className="absolute -right-2 -top-2 hidden rounded-full bg-red-600 p-1.5 text-white hover:bg-red-700 disabled:opacity-50 group-hover:flex"
+                                    title="Delete emoji"
+                                    aria-label="Delete emoji"
+                                >
+                                    {deletingId === emoji.emoji_id ? (
+                                        <span className="h-4 w-4 animate-spin">⌛</span>
+                                    ) : (
+                                        <span className="text-sm">✕</span>
+                                    )}
+                                </button>
                                 <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md bg-black/20">
                                     {emoji.image_url ? (
                                         <img src={emoji.image_url} alt={emoji.name} className="h-9 w-9 object-contain" />

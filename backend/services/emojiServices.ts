@@ -156,10 +156,45 @@ async function getEmojiMapByIds(emojiIds: string[]) {
 	return map;
 }
 
+async function deleteServerEmoji(userId: string, serverId: string, emojiId: string) {
+	// Validation
+	if (!userId) {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const normalizedServerId = serverId.trim();
+	if (!normalizedServerId) {
+		throw new AppError('Server id is required', 400, 'INVALID_SERVER_ID');
+	}
+
+	const normalizedEmojiId = emojiId.trim();
+	if (!normalizedEmojiId) {
+		throw new AppError('Emoji id is required', 400, 'INVALID_EMOJI_ID');
+	}
+
+	// Check if server exists
+	const server = await serverModel.getServerById(normalizedServerId);
+	if (!server) {
+		throw new AppError('Server not found', 404, 'SERVER_NOT_FOUND');
+	}
+
+	// Check if user is the server owner
+	if (server.owner_id !== userId) {
+		throw new AppError('Only the server owner can delete custom emoji', 403, 'FORBIDDEN');
+	}
+
+	const result = await emojiModel.deleteEmoji(normalizedEmojiId);
+
+	if (!result) {
+		throw new AppError('Emoji not found or could not be deleted', 404, 'EMOJI_NOT_FOUND');
+	}
+};
+
 export default {
 	addServerEmoji,
 	getServerEmojis,
 	seedDefaultServerEmojis,
 	validateServerEmoji,
 	getEmojiMapByIds,
+	deleteServerEmoji,
 };

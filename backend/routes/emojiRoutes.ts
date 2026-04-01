@@ -43,4 +43,19 @@ router.post(
 	emojiController.addServerEmoji
 );
 
+// DELETE /api/servers/:serverId/emojis/:emojiId
+router.delete(
+	'/:emojiId',
+	authenticate,
+	[
+		param('emojiId')
+			.isString()
+			.trim()
+			.isUUID()
+			.withMessage('Emoji id must be a valid UUID'),
+	],
+	validateData,
+	emojiController.deleteServerEmoji
+);
+
 export default router;

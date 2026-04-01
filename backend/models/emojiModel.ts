@@ -99,6 +99,15 @@ const emojiModel = {
 
 		return rows;
 	},
+
+	async deleteEmoji(emojiId: string): Promise<boolean> {
+		const [result] = await pool.execute<ResultSetHeader>(
+			`DELETE FROM emojis WHERE emoji_id = ?`,
+			[emojiId]
+		);
+
+		return result.affectedRows > 0;
+	},
 };
 
 export default emojiModel;

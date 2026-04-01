@@ -10,11 +10,15 @@ const Home: React.FC = () => {
   // const currentServerId = useParams().serverId;
   // const currentChannelId = useParams().channelId;
 
-  const [currentServerInfo, setCurrentServerInfo] = useState<{ serverName: string; serverId: string } | null>(null);
-  const [currentChannelInfo, setCurrentChannelInfo] = useState<{ channelName: string; channelId: string } | null>(null);
+  const [currentServerInfo, setCurrentServerInfo] = useState<{ serverName: string; serverId: string } | null>(localStorage.getItem("lastServerInfo") ? JSON.parse(localStorage.getItem("lastServerInfo") as string) : null);
+  const [currentChannelInfo, setCurrentChannelInfo] = useState<{ channelName: string; channelId: string } | null>(localStorage.getItem("lastChannelInfo") ? JSON.parse(localStorage.getItem("lastChannelInfo") as string) : null);
 
   const handleServerInfoChanged = (serverName: string, serverId: string) => {
     setCurrentServerInfo({ serverName, serverId });
+
+    // Store last server info in localStorage 
+    // to persist across page reloads
+    localStorage.setItem("lastServerInfo", JSON.stringify({ serverName, serverId }));
   }
 
   const handleOnChannelInfoChanged = (channelName: string, channelId: string) => {
