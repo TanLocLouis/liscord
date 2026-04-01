@@ -34,7 +34,7 @@ async function createChannel(userId: string, payload: CreateChannelPayload) {
 
 	// Check the number of channel per channel the user has created
 	// Set the limit in MAX_SERVERS_PER_USER environment variable
-	const MAX_CHANNELS_PER_SERVER = parseInt(process.env.MAX_CHANNELS_PER_SERVER || '10', 10);
+	const MAX_CHANNELS_PER_SERVER = parseInt(process.env.MAX_CHANNELS_PER_SERVER || '100', 10);
 	const userServersCount = await channelModel.getChannelsPerServerCount(normalizedServerId);
 	if (userServersCount >= MAX_CHANNELS_PER_SERVER) {
 		throw new AppError(`You have reached the maximum limit of ${MAX_CHANNELS_PER_SERVER} channels`, 400, 'CHANNEL_LIMIT_REACHED');

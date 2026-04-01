@@ -8,6 +8,7 @@ type CreateServerPayload = {
 	serverName: string;
 	description?: string;
 	serverIcon?: string;
+	type?: 'group' | 'dm';
 };
 
 type CreateInvitePayload = {
@@ -39,7 +40,7 @@ async function createServer(ownerId: string, payload: CreateServerPayload) {
 
 	// Check the number of servers the user has created
 	// Set the limit in MAX_SERVERS_PER_USER environment variable
-	const MAX_SERVERS_PER_USER = parseInt(process.env.MAX_SERVERS_PER_USER || '2', 10);
+	const MAX_SERVERS_PER_USER = parseInt(process.env.MAX_SERVERS_PER_USER || '50', 10);
 	const userServersCount = await serverModel.getUserCreatedServersCount(ownerId);
 	if (userServersCount >= MAX_SERVERS_PER_USER) {
 		throw new AppError(`You have reached the maximum limit of ${MAX_SERVERS_PER_USER} servers`, 400, 'SERVER_LIMIT_REACHED');
@@ -55,6 +56,7 @@ async function createServer(ownerId: string, payload: CreateServerPayload) {
 		serverIcon: payload.serverIcon?.trim() ?? '',
 		membersCount: 1,
 		ownerId,
+		type: payload.type ?? 'group',
 		createdAt: new Date().toISOString(),
 	});
 
@@ -105,6 +107,16 @@ async function getJoinedServers(userId: string) {
 async function joinServer(serverId: string, userId: string) {
 	if (!serverId || !userId) {
 		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const server = await serverModel.getServerById(serverId);
+	if (!server) {
+		throw new AppError('Server not found', 404, 'SERVER_NOT_FOUND');
+	}
+
+	// DM servers can only be joined via invite
+	if (server.type === 'dm') {
+		throw new AppError('Direct message servers can only be joined via invite', 403, 'DM_JOIN_INVITE_ONLY');
 	}
 
 	await serverModel.joinServer(serverId, userId);
@@ -188,6 +200,12 @@ async function joinServerByInvite(code: string, userId: string) {
 			}
 			if (error.message === 'INVITE_MAX_USES_REACHED') {
 				throw new AppError('Invite has reached max uses', 400, 'INVITE_MAX_USES_REACHED');
+			}
+			if (error.message === 'DM_SERVER_FULL') {
+				throw new AppError('Direct message servers can only have 2 members', 403, 'DM_SERVER_FULL');
+			}
+			if (error.message === 'SERVER_NOT_FOUND') {
+				throw new AppError('Server not found', 404, 'SERVER_NOT_FOUND');
 			}
 		}
 

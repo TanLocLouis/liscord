@@ -10,6 +10,7 @@ export type CreateServerInput = {
 	serverIcon: string;
 	membersCount: number;
 	ownerId: string;
+	type?: 'group' | 'dm';
 	createdAt: string;
 };
 
@@ -20,6 +21,7 @@ export type JoinedServer = RowDataPacket & {
 	server_icon: string;
 	members_count: number;
 	owner_id: string;
+	type: 'group' | 'dm';
 	created_at: string;
 };
 
@@ -45,8 +47,9 @@ const serverModel = {
 				server_icon,
 				members_count,
 				owner_id,
+				type,
 				created_at
-			) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
 			[
 				serverData.serverId,
 				serverData.serverName,
@@ -54,6 +57,7 @@ const serverModel = {
 				serverData.serverIcon,
 				serverData.membersCount,
 				serverData.ownerId,
+				serverData.type ?? 'group',
 				serverData.createdAt,
 			]
 		);
@@ -178,6 +182,21 @@ const serverModel = {
 				throw new Error('INVITE_MAX_USES_REACHED');
 			}
 
+			// Check server type and member count
+			const [serverRows] = await conn.execute<any[]>(
+				`SELECT type, members_count FROM servers WHERE server_id = ? FOR UPDATE`,
+				[invite.server_id]
+			);
+
+			if (serverRows.length === 0) {
+				throw new Error('SERVER_NOT_FOUND');
+			}
+
+			const server = serverRows[0];
+			if (server.type === 'dm' && server.members_count >= 2) {
+				throw new Error('DM_SERVER_FULL');
+			}
+
 			const [memberRows] = await conn.execute<ServerMemberRow[]>(
 				`SELECT user_id FROM server_members WHERE server_id = ? AND user_id = ? LIMIT 1`,
 				[invite.server_id, userId]
@@ -221,6 +240,7 @@ const serverModel = {
 				server_icon,
 				members_count,
 				owner_id,
+				type,
 				created_at
 			FROM servers
 			WHERE server_id = ?`,

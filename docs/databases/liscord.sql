@@ -34,15 +34,6 @@ CREATE TABLE `channel_emojis` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `channel_emojis`
---
-
-LOCK TABLES `channel_emojis` WRITE;
-/*!40000 ALTER TABLE `channel_emojis` DISABLE KEYS */;
-/*!40000 ALTER TABLE `channel_emojis` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `channels`
 --
 
@@ -61,16 +52,6 @@ CREATE TABLE `channels` (
   CONSTRAINT `fk_channel_server1` FOREIGN KEY (`server_id`) REFERENCES `servers` (`server_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `channels`
---
-
-LOCK TABLES `channels` WRITE;
-/*!40000 ALTER TABLE `channels` DISABLE KEYS */;
-INSERT INTO `channels` VALUES ('07cf2f88-15e8-42ac-84dd-e4e72561a36c','gaming','text',1,'2026-03-20 05:25:51','210f6e07-8cd5-4fe3-92d3-73d6854d4393'),('b05e18a1-89ba-4fbe-8a19-4107a9f213c2','general','text',0,'2026-03-19 14:59:49','210f6e07-8cd5-4fe3-92d3-73d6854d4393');
-/*!40000 ALTER TABLE `channels` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `emojis`
@@ -97,15 +78,6 @@ CREATE TABLE `emojis` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `emojis`
---
-
-LOCK TABLES `emojis` WRITE;
-/*!40000 ALTER TABLE `emojis` DISABLE KEYS */;
-/*!40000 ALTER TABLE `emojis` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `friends`
 --
 
@@ -124,15 +96,6 @@ CREATE TABLE `friends` (
   CONSTRAINT `fk_friend_users2` FOREIGN KEY (`friend_id`) REFERENCES `users` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `friends`
---
-
-LOCK TABLES `friends` WRITE;
-/*!40000 ALTER TABLE `friends` DISABLE KEYS */;
-/*!40000 ALTER TABLE `friends` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `invites`
@@ -161,16 +124,6 @@ CREATE TABLE `invites` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `invites`
---
-
-LOCK TABLES `invites` WRITE;
-/*!40000 ALTER TABLE `invites` DISABLE KEYS */;
-INSERT INTO `invites` VALUES ('e05c6934-3656-4c41-8afe-e2ff72bafb52','rxBLtnva5W','210f6e07-8cd5-4fe3-92d3-73d6854d4393','3d11b2b0-feba-4c47-9ad8-80a1c719f323',10,1,'2026-03-19 23:04:46','2026-03-19 15:04:46');
-/*!40000 ALTER TABLE `invites` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `messages`
 --
 
@@ -197,15 +150,6 @@ CREATE TABLE `messages` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `messages`
---
-
-LOCK TABLES `messages` WRITE;
-/*!40000 ALTER TABLE `messages` DISABLE KEYS */;
-/*!40000 ALTER TABLE `messages` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `server_members`
 --
 
@@ -226,16 +170,6 @@ CREATE TABLE `server_members` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `server_members`
---
-
-LOCK TABLES `server_members` WRITE;
-/*!40000 ALTER TABLE `server_members` DISABLE KEYS */;
-INSERT INTO `server_members` VALUES ('2236245a-fbd7-41bd-95a4-deb65935c3c3','210f6e07-8cd5-4fe3-92d3-73d6854d4393',NULL,'2026-03-19 15:04:52'),('3d11b2b0-feba-4c47-9ad8-80a1c719f323','210f6e07-8cd5-4fe3-92d3-73d6854d4393',NULL,'2026-03-19 14:59:49');
-/*!40000 ALTER TABLE `server_members` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
 -- Table structure for table `servers`
 --
 
@@ -244,6 +178,7 @@ DROP TABLE IF EXISTS `servers`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `servers` (
   `server_id` varchar(36) NOT NULL,
+  `type` enum('group','dm') DEFAULT NULL,
   `server_name` varchar(255) DEFAULT NULL,
   `description` varchar(1023) DEFAULT NULL,
   `server_icon` varchar(255) DEFAULT NULL,
@@ -256,16 +191,6 @@ CREATE TABLE `servers` (
   CONSTRAINT `fk_server_users` FOREIGN KEY (`owner_id`) REFERENCES `users` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `servers`
---
-
-LOCK TABLES `servers` WRITE;
-/*!40000 ALTER TABLE `servers` DISABLE KEYS */;
-INSERT INTO `servers` VALUES ('210f6e07-8cd5-4fe3-92d3-73d6854d4393','weeb','','http://localhost:9000/liscord/icons/3d11b2b0-feba-4c47-9ad8-80a1c719f323-b9aaaffd-00c3-4b6c-a52c-7c87687525cb.png',2,'3d11b2b0-feba-4c47-9ad8-80a1c719f323','2026-03-19T14:59:49.975Z');
-/*!40000 ALTER TABLE `servers` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `users`
@@ -291,20 +216,6 @@ CREATE TABLE `users` (
   UNIQUE KEY `email_UNIQUE` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES ('2236245a-fbd7-41bd-95a4-deb65935c3c3','elon','ltloc05samsunggalaxyj3pro@gmail.com','$2b$10$Qcf0oBdmnSGq84u4GEoXqOvs35anGKzwl17efxzRtGgVTZzNm94aW','http://localhost:9000/liscord/avatars/2236245a-fbd7-41bd-95a4-deb65935c3c3-8228987b-bd68-4786-8bea-b002206ca3a0.jpg','Heil',NULL,1,'2026-03-19 21:59:29','2026-03-19 16:46:00'),('3d11b2b0-feba-4c47-9ad8-80a1c719f323','louis','ltloc05lumia520@gmail.com','$2b$10$.Kf/dSRMyCrHD2CvQucTme86EpSWaDPUDjgAw26iHiUMRbtx/McNy','http://localhost:9000/liscord/avatars/3d11b2b0-feba-4c47-9ad8-80a1c719f323-fec7e33f-90bb-49a7-842d-519814197749.png','I am pepe\nBuy this coin at X.com/pepe',NULL,1,'2026-03-19 21:59:02','2026-03-19 16:45:30');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Dumping events for database 'liscord'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -315,4 +226,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-03-24 18:45:33
+-- Dump completed on 2026-04-01 21:03:33

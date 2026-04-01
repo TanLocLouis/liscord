@@ -7,6 +7,7 @@ type CreateServerBody = {
 	serverName: string;
 	description?: string;
 	serverIcon?: string;
+	type?: 'group' | 'dm';
 };
 
 type CreateInviteBody = {
@@ -31,15 +32,17 @@ const createServer = asyncHandler(async (req, res) => {
 		serverName: body.serverName,
 		...(body.description !== undefined ? { description: body.description } : {}),
 		...(body.serverIcon !== undefined ? { serverIcon: body.serverIcon } : {}),
+		type: body.type ?? 'group',
 	};
-	
+
 	// Create server
 	const result = await serverServices.createServer(userId, createPayload);
 
-	// Create default channels (general)
+	// Create default channel for group, or single channel for DM
+	const channelName = body.type === 'dm' ? 'dm' : 'general';
 	await channelServices.createChannel(userId, {
 		serverId: result.serverId,
-		channelName: 'general',
+		channelName,
 		type: 'text',
 		position: 0,
 	});

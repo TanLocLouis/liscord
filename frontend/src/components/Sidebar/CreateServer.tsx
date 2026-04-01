@@ -13,10 +13,11 @@ interface CreateServerProps {
 interface CreateServerFormData {
     serverName: string;
     description: string;
+    type: 'group' | 'dm';
 }
 
 const CreateServer = (props: CreateServerProps) => {
-    const [formData, setFormData] = useState<CreateServerFormData>({ serverName: "", description: ""});
+    const [formData, setFormData] = useState<CreateServerFormData>({ serverName: "", description: "", type: "group" });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const authContext = useAuth();
     const { addToast } = useToast();
@@ -27,9 +28,10 @@ const CreateServer = (props: CreateServerProps) => {
     };
 
     const handleInputChanged = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value, type } = e.target as HTMLInputElement & HTMLTextAreaElement;
         setFormData((prev) => ({
             ...prev,
-            [e.target.name]: e.target.value,
+            [name]: name === 'type' && type === 'radio' ? value : value,
         }));
     };
 
@@ -53,6 +55,7 @@ const CreateServer = (props: CreateServerProps) => {
                 body: JSON.stringify({
                     serverName: formData.serverName.trim(),
                     description: formData.description.trim(),
+                    type: formData.type,
                 }),
             });
 
@@ -95,18 +98,50 @@ const CreateServer = (props: CreateServerProps) => {
                         />
                     </div>
 
-                    <div className="w-full mt-2">
-                        <label htmlFor="server-description" className="block text-[var(--color-text-secondary)]">Description</label>
-                        <Input
-                            type="text"
-                            name="description"
-                            id="server-description"
-                            onChange={handleInputChanged}
-                            className="m-0 mt-1 block w-full rounded-md border-[var(--color-text-secondary)] shadow-sm sm:text-sm hover:cursor-text"
-                            placeholder="Enter server description (optional)"
-                            disabled={isSubmitting}
-                        />
+                    <div className="w-full mt-4">
+                        <label className="block text-[var(--color-text-secondary)] mb-2">Server Type</label>
+                        <div className="flex gap-4">
+                            <label className="flex items-center cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="type"
+                                    value="group"
+                                    checked={formData.type === 'group'}
+                                    onChange={handleInputChanged}
+                                    disabled={isSubmitting}
+                                    className="mr-2"
+                                />
+                                <span className="text-[var(--color-text-secondary)]">Group</span>
+                            </label>
+                            <label className="flex items-center cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="type"
+                                    value="dm"
+                                    checked={formData.type === 'dm'}
+                                    onChange={handleInputChanged}
+                                    disabled={isSubmitting}
+                                    className="mr-2"
+                                />
+                                <span className="text-[var(--color-text-secondary)]">Direct Message (2 members)</span>
+                            </label>
+                        </div>
                     </div>
+
+                    {formData.type === 'group' && (
+                        <div className="w-full mt-2">
+                            <label htmlFor="server-description" className="block text-[var(--color-text-secondary)]">Description</label>
+                            <Input
+                                type="text"
+                                name="description"
+                                id="server-description"
+                                onChange={handleInputChanged}
+                                className="m-0 mt-1 block w-full rounded-md border-[var(--color-text-secondary)] shadow-sm sm:text-sm hover:cursor-text"
+                                placeholder="Enter server description (optional)"
+                                disabled={isSubmitting}
+                            />
+                        </div>
+                    )}
 
 
                     <div className="mt-4 w-full">

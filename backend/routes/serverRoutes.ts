@@ -23,6 +23,10 @@ router.post(
 			.isString()
 			.isLength({ max: 1023 })
 			.withMessage('Description must be less than 1024 characters'),
+		body('type')
+			.optional()
+			.isIn(['group', 'dm'])
+			.withMessage('Server type must be either "group" or "dm"'),
 		body('serverIcon')
 			.optional()
 			.isString()
