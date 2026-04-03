@@ -14,6 +14,8 @@
 - Push notification for message.
 - Search old message (history).
 - DM (Direct Message).
+- Search
+- Friends
 
 ## Future
 - Rate limitter.

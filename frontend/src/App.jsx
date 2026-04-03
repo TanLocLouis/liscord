@@ -15,6 +15,7 @@ import ProtectedRoute from './pages/ProtectedRoute/ProtectedRoute.jsx'
 import Invite from './pages/Invite/Invite'
 import ServerSettings from './pages/ServerSettings/ServerSettings'
 import UserProfile from './pages/UserProfile/UserProfile'
+import NotFound from './pages/NotFound/NotFound'
 
 function App() {
   return (
@@ -23,32 +24,37 @@ function App() {
 
           <ToastProvider>
             <AuthProvider>
-              <ToastList />
 
+              <ToastList />
               <TopHeader />
 
               <Routes>
+                {/* Public routes */}
                 <Route path="/sign-up" element={<SignUp />}/>
                 <Route path="/login" element={<Login />}/>
                 <Route path="/invite/:code" element={<Invite />}/>
                 <Route path="/users/:userId" element={<UserProfile />}/>
-              </Routes>
 
-              <ProtectedRoute>
-                <Routes>
-                  <Route path="/:userId" element={<Profile />}/>
-                  <Route path="/reset-password" element={<ResetPassword />}/>
-                  <Route path="/reset-password-form" element={<ResetPasswordForm />}/>
-                  <Route path="/verify-sign-up" element={<VerifySignup />}/>
+                <Route path="/reset-password" element={<ResetPassword />}/>
+                <Route path="/reset-password-form" element={<ResetPasswordForm />}/>
+                <Route path="/verify-sign-up" element={<VerifySignup />}/>
 
-                  <Route path="/" element={<Navigate to="/channels/@me" replace/>} />
-                  <Route path="/channels/@me" element={<Home />}/>
+                {/* Protected routes */}
+                <Route element={<ProtectedRoute />}>
+                  {/* <Route path="/" element={<Navigate to="/channels/@me" replace/>} /> */}
+                  <Route path="/" element={<Home />}/>
                   <Route path="/channels/:serverId/:channelId" element={<Home />}/>
                   <Route path="/server/:serverId/settings" element={<ServerSettings />}/>
-                </Routes>
-              </ProtectedRoute>
+
+                  <Route path="/:userId" element={<Profile />}/>
+                </Route>
+
+                {/* Not found */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
 
               <Footer />
+
             </AuthProvider>
           </ToastProvider>
 

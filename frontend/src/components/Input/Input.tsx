@@ -43,7 +43,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 					id={inputId}
 					name={name}
 					type={type}
-					className={`w-full border-2 rounded-lg p-1 h-[45px] bg-[var(--color-secondary)] text-[var(--color-text-primary)] hover:shadow-[0_0_0_2px_color-mix(in_oklab,var(--color-primary)_20%,transparent)] focus:shadow-[0_0_0_2px_color-mix(in_oklab,var(--color-primary)_40%,transparent)] focus:outline-none transition-shadow duration-200 ${className} ${error ? "border-red-500" : ""}`}
+					className={`w-full border-2 rounded-lg p-2 h-[45px] bg-[var(--color-secondary)] text-[var(--color-text-primary)] hover:shadow-[0_0_0_2px_color-mix(in_oklab,var(--color-primary)_20%,transparent)] focus:shadow-[0_0_0_2px_color-mix(in_oklab,var(--color-primary)_40%,transparent)] focus:outline-none transition-shadow duration-200 ${className} ${error ? "border-red-500" : ""}`}
 					aria-invalid={Boolean(error)}
 					{...props}
 				/>

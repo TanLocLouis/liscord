@@ -1,4 +1,4 @@
-import { Navigate } from "react-router";
+import { Navigate, Outlet } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 
 interface ProtectedRouteProps {
@@ -15,7 +15,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   // If authenticated, render the protected component
-  return <>{children}</>;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
