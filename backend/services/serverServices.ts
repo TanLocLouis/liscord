@@ -368,6 +368,34 @@ async function getOrCreateDM(userId1: string, userId2: string) {
 	};
 }
 
+async function leaveServer(serverId: string, userId: string) {
+	if (!serverId || !userId) {
+		throw new AppError('Invalid parameters', 400, 'INVALID_PARAMETERS');
+	}
+
+	const server = await serverModel.getServerById(serverId);
+	if (!server) {
+		throw new AppError('Server not found', 404, 'SERVER_NOT_FOUND');
+	}
+
+	const isMember = await serverModel.isServerMember(serverId, userId);
+	if (!isMember) {
+		throw new AppError('You are not a member of this server', 403, 'FORBIDDEN');
+	}
+
+	// Prevent DM owner from leaving (but allow other member to leave)
+	if (server.type === 'dm' && server.owner_id === userId) {
+		throw new AppError('DM owner cannot leave the server', 403, 'CANNOT_LEAVE_DM');
+	}
+
+	// Remove user from server
+	await serverModel.removeServerMember(serverId, userId);
+
+	return {
+		message: 'Left server successfully',
+	};
+}
+
 export default {
 	createServer,
 	getServerDetails,
@@ -380,4 +408,5 @@ export default {
 	addServerMember,
 	getExistingDM,
 	getOrCreateDM,
+	leaveServer,
 };

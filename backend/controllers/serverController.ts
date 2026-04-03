@@ -220,6 +220,23 @@ const getOrCreateDM = asyncHandler(async (req, res) => {
 	res.status(200).json(result);
 });
 
+const leaveServer = asyncHandler(async (req, res) => {
+	// Validate user authentication
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	// Validate server ID
+	const { serverId } = req.params;
+	if (!serverId || typeof serverId !== 'string') {
+		throw new AppError('Invalid server ID', 400, 'INVALID_SERVER_ID');
+	}
+
+	const result = await serverServices.leaveServer(serverId, req.user.user_id);
+
+	res.status(200).json(result);
+});
+
 export default {
 	createServer,
 	getServerDetails,
@@ -231,4 +248,5 @@ export default {
 	updateServerIcon,
 	addServerMember,
 	getOrCreateDM,
+	leaveServer,
 };

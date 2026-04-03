@@ -282,6 +282,13 @@ const serverModel = {
 		);
 		return rows[0] ?? null;
 	},
+	async removeServerMember(serverId: string, userId: string): Promise<boolean> {
+		const [result] = await pool.execute<ResultSetHeader>(
+			`DELETE FROM server_members WHERE server_id = ? AND user_id = ?`,
+			[serverId, userId]
+		);
+		return result.affectedRows > 0;
+	},
 };
 
 export default serverModel;

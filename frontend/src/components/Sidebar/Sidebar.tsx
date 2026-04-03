@@ -31,27 +31,28 @@ const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververIn
     const { menu, openMenu, closeMenu } = useContextMenu();
 
     const authContext = useAuth();
-    useEffect(() => {
-        const getJoinedServers = async () => {
-            try {
-                const response = await fetchWithAuth(authContext, `${import.meta.env.VITE_API_URL}/api/servers/joined`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authContext?.accessToken}`,
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to fetch joined servers');
-                }
-                const data = await response.json();
-                setServerList(data.servers);
-            }
-            catch (error) {
-                console.error('Error fetching joined servers:', error);
-            }
-        };
 
+    const getJoinedServers = async () => {
+        try {
+            const response = await fetchWithAuth(authContext, `${import.meta.env.VITE_API_URL}/api/servers/joined`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authContext?.accessToken}`,
+                },
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch joined servers');
+            }
+            const data = await response.json();
+            setServerList(data.servers);
+        }
+        catch (error) {
+            console.error('Error fetching joined servers:', error);
+        }
+    };
+
+    useEffect(() => {
         getJoinedServers();
     }, [isCreateServerOpen])
 
@@ -102,7 +103,7 @@ const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververIn
                 </ul>
             </div>
 
-            <ContextMenu menu={menu} closeMenu={closeMenu} />
+            <ContextMenu menu={menu} closeMenu={closeMenu} onServerLeft={getJoinedServers} />
             {isCreateServerOpen && <CreateServer setIsCreateServerOpen={setIsCreateServerOpen}/>}
         </div>
     )

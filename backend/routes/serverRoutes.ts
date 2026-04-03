@@ -139,4 +139,18 @@ router.post('/dm/get-or-create',
 	serverController.getOrCreateDM
 );
 
+// DELETE /api/servers/:serverId/leave
+router.delete('/:serverId/leave',
+	authenticate,
+	[
+		param('serverId')
+			.isString()
+			.trim()
+			.isLength({ min: 36, max: 36 })
+			.withMessage('Server ID is required'),
+	],
+	validateData,
+	serverController.leaveServer
+);
+
 export default router;
