@@ -3,8 +3,9 @@ import type { ChangeEvent } from "react";
 import { useToast } from "@contexts/ToastContext.jsx";
 import { useAuth } from "@contexts/AuthContext.jsx";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
+import { useNavigate, useParams } from "react-router";
 import { motion } from "framer-motion";
-import { useParams } from "react-router";
+import Button from "@components/Button/Button.js";
 
 interface ProfileData {
     username?: string;
@@ -17,12 +18,14 @@ interface ProfileData {
 
 const UserProfile: React.FC = () => {
     const userId = useParams().userId;
+    const navigate = useNavigate();
 
     const { addToast } = useToast();
     const { userInfo, accessToken } = useAuth();
     const authContext = useAuth();
 
     const [profileData, setProfileData] = useState<ProfileData>({});
+    const [isCreatingDM, setIsCreatingDM] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -104,6 +107,49 @@ const UserProfile: React.FC = () => {
         }
     }
 
+    const handleStartDM = async () => {
+        if (!userId || userId === userInfo?.user_id) {
+            addToast("error", "Cannot start DM with yourself");
+            return;
+        }
+
+        setIsCreatingDM(true);
+        try {
+            // Check if DM exists or create a new one
+            const res = await fetchWithAuth(authContext, `${import.meta.env.VITE_API_URL}/api/servers/dm/get-or-create`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${authContext.accessToken}`,
+                },
+                body: JSON.stringify({
+                    targetUserId: userId,
+                }),
+            });
+
+            if (!res.ok) {
+                throw new Error("Failed to get or create DM");
+            }
+
+            const data = await res.json();
+            const serverId = data.serverId;
+            const existed = data.existed;
+
+            if (existed) {
+                addToast("success", "Opening existing DM");
+            } else {
+                addToast("success", "DM created successfully");
+            }
+
+            navigate("/");
+        } catch (err) {
+            console.error("Error creating DM:", err);
+            addToast("error", "Failed to start DM. Please try again.");
+        } finally {
+            setIsCreatingDM(false);
+        }
+    }
+
     return (
         <motion.div
             initial={{ transform: 'translateY(5%)', opacity: 0 }}
@@ -133,6 +179,18 @@ const UserProfile: React.FC = () => {
                             <p className="profile-createdAt">📆 {profileData.created_at ? convertToDateString(profileData.created_at) : "N/A"}</p>
                             <p className="profile-isVerified">{profileData.is_active ? "✅ Verified" : "❌ Not Verified"}</p>
                             <p className="profile-bio mt-2">{profileData.bio ? profileData.bio : "No bio available"}</p>
+                            {userInfo?.user_id !== userId && (
+                                <div>
+                                    <Button
+                                        onClick={handleStartDM}
+                                        disabled={isCreatingDM}
+                                        className="h-[40px] px-4"
+                                        title={isCreatingDM ? "Creating..." : "Message"}
+                                    >
+                                        {isCreatingDM ? "Creating..." : "💬 Message"}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

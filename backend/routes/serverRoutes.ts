@@ -106,4 +106,37 @@ router.patch('/:serverId/icon',
     serverController.updateServerIcon
 );
 
+// POST /api/servers/:serverId/members
+router.post('/:serverId/members',
+	authenticate,
+	[
+		param('serverId')
+			.isString()
+			.trim()
+			.isLength({ min: 36, max: 36 })
+			.withMessage('Server ID is required'),
+		body('userId')
+			.isString()
+			.trim()
+			.isLength({ min: 1 })
+			.withMessage('User ID is required'),
+	],
+	validateData,
+	serverController.addServerMember
+);
+
+// POST /api/servers/dm/get-or-create
+router.post('/dm/get-or-create',
+	authenticate,
+	[
+		body('targetUserId')
+			.isString()
+			.trim()
+			.isLength({ min: 1 })
+			.withMessage('Target user ID is required'),
+	],
+	validateData,
+	serverController.getOrCreateDM
+);
+
 export default router;

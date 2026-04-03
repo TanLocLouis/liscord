@@ -3,6 +3,7 @@ import AppError from '../utils/AppError.js';
 import serverModel from '../models/serverModel.js';
 import { uploadAvatarToS3, uploadIconToS3 } from '../utils/s3AvatarStorage.js';
 import emojiServices from './emojiServices.js';
+import usersModel from '../models/usersModel.js';
 
 type CreateServerPayload = {
 	serverName: string;
@@ -270,6 +271,103 @@ async function updateServerIcon(serverId: string, userId: string, iconFile: Expr
 
 }
 
+async function addServerMember(serverId: string, userIdToAdd: string, requesterId: string) {
+	if (!serverId || !userIdToAdd || !requesterId) {
+		throw new AppError('Invalid parameters', 400, 'INVALID_PARAMETERS');
+	}
+
+	const server = await serverModel.getServerById(serverId);
+	if (!server) {
+		throw new AppError('Server not found', 404, 'SERVER_NOT_FOUND');
+	}
+
+	// Only the server owner can add members to a DM
+	if (server.type === 'dm' && server.owner_id !== requesterId) {
+		throw new AppError('Only the server owner can add members to a DM', 403, 'FORBIDDEN');
+	}
+
+	// DM servers can only have 2 members
+	if (server.type === 'dm') {
+		const isMember = await serverModel.isServerMember(serverId, userIdToAdd);
+		if (isMember) {
+			throw new AppError('User is already a member of this DM', 400, 'ALREADY_MEMBER');
+		}
+	}
+
+	await serverModel.createServerMember(serverId, userIdToAdd);
+
+	return {
+		message: 'Member added successfully',
+	};
+}
+
+async function getExistingDM(userId1: string, userId2: string) {
+	if (!userId1 || !userId2) {
+		throw new AppError('Invalid user IDs', 400, 'INVALID_USER_IDS');
+	}
+
+	const dmServer = await serverModel.getExistingDM(userId1, userId2);
+	return dmServer;
+}
+
+async function getOrCreateDM(userId1: string, userId2: string) {
+	if (!userId1 || !userId2) {
+		throw new AppError('Invalid user IDs', 400, 'INVALID_USER_IDS');
+	}
+
+	if (userId1 === userId2) {
+		throw new AppError('Cannot create DM with yourself', 400, 'INVALID_DM');
+	}
+
+	// Check if DM already exists
+	const existingDM = await serverModel.getExistingDM(userId1, userId2);
+	if (existingDM) {
+		return {
+			serverId: existingDM.server_id,
+			existed: true,
+			message: 'DM already exists',
+		};
+	}
+
+	// Create new DM server
+	const serverId = randomUUID();
+	const userName1 = await usersModel.getUserNameByUserId(userId1);
+	const userName2 = await usersModel.getUserNameByUserId(userId2);
+	const dmServerName = `DM: ${userName1} & ${userName2}`;
+	await serverModel.createServer({
+		serverId,
+		serverName: dmServerName,
+		description: '',
+		serverIcon: '',
+		membersCount: 1,
+		ownerId: userId1,
+		type: 'dm',
+		createdAt: new Date().toISOString(),
+	});
+
+	// Add both users as members
+	await serverModel.createServerMember(serverId, userId1);
+	await serverModel.createServerMember(serverId, userId2);
+
+	// Create default DM channel
+	const channelServices = (await import('./channelServices.js')).default;
+	await channelServices.createChannel(userId1, {
+		serverId,
+		channelName: 'dm',
+		type: 'text',
+		position: 0,
+	});
+
+	// Seed default emojis
+	await emojiServices.seedDefaultServerEmojis(serverId);
+
+	return {
+		serverId,
+		existed: false,
+		message: 'DM created successfully',
+	};
+}
+
 export default {
 	createServer,
 	getServerDetails,
@@ -279,4 +377,7 @@ export default {
 	joinServerByInvite,
 	updateServerName,
 	updateServerIcon,
+	addServerMember,
+	getExistingDM,
+	getOrCreateDM,
 };

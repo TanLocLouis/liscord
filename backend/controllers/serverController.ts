@@ -179,6 +179,47 @@ const updateServerIcon = asyncHandler(async (req, res) => {
 	res.status(200).json({ message: 'Server icon updated successfully' });
 });
 
+// Use for adding a member to a server (by server owner or by DM server creator)
+const addServerMember = asyncHandler(async (req, res) => {
+	// Validate user authentication
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	// Validate server ID
+	const { serverId } = req.params;
+	if (!serverId || typeof serverId !== 'string') {
+		throw new AppError('Invalid server ID', 400, 'INVALID_SERVER_ID');
+	}
+
+	// Validate user ID in request body
+	const { userId } = req.body as { userId?: string };
+	if (!userId || typeof userId !== 'string') {
+		throw new AppError('User ID is required', 400, 'MISSING_USER_ID');
+	}
+
+	await serverServices.addServerMember(serverId, userId, req.user.user_id);
+
+	res.status(200).json({ message: 'Member added successfully' });
+});
+
+const getOrCreateDM = asyncHandler(async (req, res) => {
+	// Validate user authentication
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	// Validate target user ID in request body
+	const { targetUserId } = req.body as { targetUserId?: string };
+	if (!targetUserId || typeof targetUserId !== 'string') {
+		throw new AppError('Target user ID is required', 400, 'MISSING_TARGET_USER_ID');
+	}
+
+	const result = await serverServices.getOrCreateDM(req.user.user_id, targetUserId);
+
+	res.status(200).json(result);
+});
+
 export default {
 	createServer,
 	getServerDetails,
@@ -188,4 +229,6 @@ export default {
 	joinServerByInvite,
 	updateServerName,
 	updateServerIcon,
+	addServerMember,
+	getOrCreateDM,
 };

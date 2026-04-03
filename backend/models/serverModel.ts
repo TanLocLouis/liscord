@@ -267,6 +267,21 @@ const serverModel = {
 		);
 		return result;
 	},
+	async getExistingDM(userId1: string, userId2: string): Promise<JoinedServer | null> {
+		const [rows] = await pool.execute<JoinedServer[]>(
+			`SELECT s.* FROM servers s
+			 WHERE s.type = 'dm'
+			 AND s.server_id IN (
+			   SELECT server_id FROM server_members WHERE user_id = ?
+			 )
+			 AND s.server_id IN (
+			   SELECT server_id FROM server_members WHERE user_id = ?
+			 )
+			 LIMIT 1`,
+			[userId1, userId2]
+		);
+		return rows[0] ?? null;
+	},
 };
 
 export default serverModel;
