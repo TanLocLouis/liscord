@@ -5,6 +5,9 @@ import usersController from '../controllers/usersController.js';
 import { authenticate } from '../middleware/authenticate.js';
 import { avatarUploadMiddleware } from '../middleware/avatarUploadMiddleware.js';
 
+// GET /api/users/search?q=<query>
+router.get('/search', authenticate, usersController.searchUsers);
+
 // GET /api/users/profile/:user_id/me
 router.get('/profile/:user_id/me', authenticate, usersController.getMyProfile);
 

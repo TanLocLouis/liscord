@@ -12,6 +12,15 @@ type UserPasswordRow = RowDataPacket & {
     password_hash: string;
 };
 
+type UserSearchRow = RowDataPacket & {
+    user_id: string;
+    username: string;
+    email: string;
+    avatar?: string;
+    bio?: string;
+    is_active: 0 | 1;
+};
+
 const usersModel = {
     async getMyProfile(userId: string): Promise<UserProfileRow | null> {
         const [rows] = await pool.execute<UserProfileRow[]>(
@@ -69,6 +78,14 @@ const usersModel = {
             [bio, userId]
         );
         return result.affectedRows > 0;
+    },
+    async searchUsers(searchQuery: string, limit: number = 20): Promise<UserSearchRow[]> {
+        const searchTerm = `%${searchQuery}%`;
+        const [rows] = await pool.execute<UserSearchRow[]>(
+            'SELECT user_id, username, email, avatar, bio, is_active FROM users WHERE username LIKE ? OR email LIKE ? LIMIT 20',
+            [searchTerm, searchTerm]
+        );
+        return rows;
     }
 }
 

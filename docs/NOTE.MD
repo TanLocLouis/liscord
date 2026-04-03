@@ -18,11 +18,13 @@
 - Minio Docker Container works like AWS S3
     + Avatar bucket should set Public Object, Private Bucket.
 
-- useEffect render after component mount, so If I want to focus the conditional input, put it in useEffect.
+- `useEffect` render after component mount, so If I want to focus the conditional input, put it in useEffect.
 
-- Socket is not realiable so when
+- `Socket` is not realiable so when
     + Send through Socket => Database, if failed, send to Database
     + Receive from Socket, if failed, receive from Database
     + Using reconnection in socket to make it will try to reconnect
 
-- Implement E2E using Group key.
+- Implement `E2E` using Group key.
+
+- Use `Debouncing` to optimize performance when searching.

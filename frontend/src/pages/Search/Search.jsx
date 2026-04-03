@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion } from "motion/react";
 import { useAuth } from "@contexts/AuthContext";
@@ -18,10 +18,26 @@ const Search = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const searchTimeoutRef = useRef(null);
 
+  // Restore search results from sessionStorage on component mount
+  useEffect(() => {
+    const savedSearchState = sessionStorage.getItem("searchState");
+    if (savedSearchState) {
+      try {
+        const { query, results, searched } = JSON.parse(savedSearchState);
+        setSearchQuery(query);
+        setSearchResults(results);
+        setHasSearched(searched);
+      } catch (err) {
+        console.error("Failed to restore search state:", err);
+      }
+    }
+  }, []);
+
   const performSearch = useCallback(async (query) => {
     if (!query.trim()) {
       setSearchResults([]);
       setHasSearched(false);
+      sessionStorage.removeItem("searchState");
       return;
     }
 
@@ -47,6 +63,13 @@ const Search = () => {
 
       const data = await res.json();
       setSearchResults(data.users || []);
+
+      // Save search state to sessionStorage
+      sessionStorage.setItem("searchState", JSON.stringify({
+        query,
+        results: data.users || [],
+        searched: true,
+      }));
 
       if (data.users && data.users.length === 0) {
         addToast("info", "No users found");
@@ -77,7 +100,7 @@ const Search = () => {
   };
 
   const handleUserClick = (userId) => {
-    navigate(`/${userId}`);
+    navigate(`/users/${userId}`);
   };
 
   return (

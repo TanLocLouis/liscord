@@ -70,10 +70,21 @@ const updateUserBio = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Bio updated successfully' });
 });
 
+const searchUsers = asyncHandler(async (req, res) => {
+    // console.log('[DEBUG] usersController.searchUsers called with query: ', req.query.q);
+    const searchQuery = req.query.q as string;
+    if (!searchQuery) {
+        throw new AppError('Search query is required', 400, 'MISSING_SEARCH_QUERY');
+    }
+    const users = await usersService.searchUsers(searchQuery);
+    res.status(200).json({ users });
+});
+
 export default {
     getMyProfile,
     getUserProfile,
     updateUserPassword,
     updateUserAvatar,
     updateUserBio,
+    searchUsers,
 }

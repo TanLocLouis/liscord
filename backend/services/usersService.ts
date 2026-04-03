@@ -73,10 +73,20 @@ async function updateUserBio(userId: string, bio: string) {
     return updated;
 }
 
+async function searchUsers(searchQuery: string) {
+    if (!searchQuery || searchQuery.trim().length === 0) {
+        throw new AppError('Search query is required', 400, 'EMPTY_SEARCH_QUERY');
+    }
+
+    const users = await usersModel.searchUsers(searchQuery.trim(), 20);
+    return users;
+}
+
 export default {
     getMyProfile,
     getUserProfile,
     updateUserPassword,
     updateUserAvatar,
     updateUserBio,
+    searchUsers,
 }
