@@ -16,6 +16,7 @@ import Invite from './pages/Invite/Invite'
 import ServerSettings from './pages/ServerSettings/ServerSettings'
 import UserProfile from './pages/UserProfile/UserProfile'
 import NotFound from './pages/NotFound/NotFound'
+import Search from './pages/Search/Search'
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
                 <Route element={<ProtectedRoute />}>
                   {/* <Route path="/" element={<Navigate to="/channels/@me" replace/>} /> */}
                   <Route path="/" element={<Home />}/>
+                  <Route path="/search" element={<Search />}/>
                   <Route path="/channels/:serverId/:channelId" element={<Home />}/>
                   <Route path="/server/:serverId/settings" element={<ServerSettings />}/>
 
