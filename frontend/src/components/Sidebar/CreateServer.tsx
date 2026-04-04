@@ -98,7 +98,7 @@ const CreateServer = (props: CreateServerProps) => {
                         />
                     </div>
 
-                    <div className="w-full mt-4">
+                    {/* <div className="w-full mt-4">
                         <label className="block text-[var(--color-text-secondary)] mb-2">Server Type</label>
                         <div className="flex gap-4">
                             <label className="flex items-center cursor-pointer">
@@ -137,11 +137,11 @@ const CreateServer = (props: CreateServerProps) => {
                                 id="server-description"
                                 onChange={handleInputChanged}
                                 className="m-0 mt-1 block w-full rounded-md border-[var(--color-text-secondary)] shadow-sm sm:text-sm hover:cursor-text"
-                                placeholder="Enter server description (optional)"
+                                placeholder="Enter server tional)"
                                 disabled={isSubmitting}
                             />
                         </div>
-                    )}
+                    )} */}
 
 
                     <div className="mt-4 w-full">

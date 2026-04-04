@@ -1,6 +1,8 @@
 import timeAgo from "@utils/timeAgo.js";
 import { useNavigate } from "react-router";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
 
 type MessageReaction = {
     emojiId: string;
@@ -68,7 +70,44 @@ const MessageCard = ({ message, availableEmojis, onReact }: MessageCardProps) =>
                     <strong className="text-[0.95rem] text-[var(--color-text-primary)]">{message.user_name}</strong>
                     <time className="text-xs opacity-70 text-[var(--color-text-primary)]">{timeAgo(message.created_at)}</time>
                 </div>
-                <p className="mt-[0.35rem] content-[0.9rem] leading-[1.45] text-[var(--color-text-primary)]">{message.content}</p>
+                <div className="mt-[0.35rem] text-[0.9rem] leading-[1.45] text-[var(--color-text-primary)]">
+                    <ReactMarkdown
+                        rehypePlugins={[rehypeSanitize]}
+                        components={{
+                            p: ({ ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                            a: ({ ...props }) => (
+                                <a
+                                    className="text-[var(--color-primary)] underline underline-offset-2"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    {...props}
+                                />
+                            ),
+                            code: ({ ...props }) => (
+                                <code
+                                    className="rounded bg-[color:color-mix(in_oklab,var(--color-secondary)_78%,transparent)] px-1 py-[0.1rem]"
+                                    {...props}
+                                />
+                            ),
+                            pre: ({ ...props }) => (
+                                <pre
+                                    className="my-2 overflow-x-auto rounded-lg bg-[color:color-mix(in_oklab,var(--color-secondary)_78%,transparent)] p-2"
+                                    {...props}
+                                />
+                            ),
+                            ul: ({ ...props }) => <ul className="mb-2 list-disc pl-5 last:mb-0" {...props} />,
+                            ol: ({ ...props }) => <ol className="mb-2 list-decimal pl-5 last:mb-0" {...props} />,
+                            blockquote: ({ ...props }) => (
+                                <blockquote
+                                    className="my-2 border-l-2 border-[color:color-mix(in_oklab,var(--color-text-primary)_34%,transparent)] pl-3 italic"
+                                    {...props}
+                                />
+                            ),
+                        }}
+                    >
+                        {message.content}
+                    </ReactMarkdown>
+                </div>
 
                 <div className="mt-2 flex flex-wrap gap-2">
                     {reactions.map((reaction) => (

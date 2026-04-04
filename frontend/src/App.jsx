@@ -52,7 +52,7 @@ function App() {
                 </Route>
 
                 {/* Not found */}
-                <Route path="*" element={<NotFound />} />
+                {/* <Route path="*" element={<NotFound />} /> */}
               </Routes>
 
               <Footer />

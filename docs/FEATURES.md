@@ -11,10 +11,11 @@
     + Display capture
     + Using AI model (whisper) to transcribe (Japansese to English)
 - ✅ Invite link.
-- Push notification for message.
+- ✅ Push notification for message.
 - Search old message (history).
-- DM (Direct Message).
-- Search
+- ✅ DM (Direct Message).
+- ✅ Search
+- ✅ Markdown in messages
 - Friends
 
 ## Future

@@ -1,5 +1,11 @@
 # Changelog
 
+## 
+- Search user by username or email.
+- See other user profile.
+- Send DM message.
+- Support Markdown message.
+
 ## [1.1.2] - 2026-03-31
 - React, add custom emoji to server.
 - Push notification message.

@@ -4,7 +4,6 @@ import { useAuth } from "@contexts/AuthContext.jsx";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 import { useEffect, useRef, useState } from "react";
 import { io, type Socket } from "socket.io-client";
-import Input from "@components/Input/Input.js";
 import { motion } from "framer-motion";
 import {
     requestBrowserNotificationPermission,
@@ -64,7 +63,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     const [isSending, setIsSending] = useState(false);
     const [isReplying, setIsReplying] = useState<ChatMessage | false>(false);
     const socketRef = useRef<Socket | null>(null);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     const [emitTyping, setEmitTyping] = useState(false);
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
     const [serverEmojis, setServerEmojis] = useState<ServerEmoji[]>([]);
@@ -386,8 +385,12 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
 
     // Handle send Send button click
     // and Enter key press in message input box
-    const handleComposerKeyDown = async (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Enter") {
+    const handleComposerKeyDown = async (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.nativeEvent.isComposing) {
+            return;
+        }
+
+        if (event.key === "Enter" && !event.shiftKey) {
             event.preventDefault();
             await handleSendMessage();
         }
@@ -587,15 +590,15 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
 
             {/* Message type box */}
             <footer className="border-t border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] grid grid-cols-[1fr_auto] items-center gap-[0.6rem] px-4 py-[0.8rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_74%,transparent)] max-md:grid-cols-1 place-items-center">
-                <Input
-                    type="text"
+                <textarea
                     value={messageInput?.content || ""}
                     onChange={((event) => setMessageInput(prev => ({ ...prev, content: event.target.value })))}
                     onKeyDown={handleComposerKeyDown}
-                    className="w-full m-1 border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] rounded-[10px] px-[0.8rem] py-[0.62rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)_90%,transparent)] text-[var(--color-text-primary)] text-[0.92rem] focus:outline-none focus:border-[color:color-mix(in_oklab,var(--color-primary)_50%,transparent)]"
+                    className="w-full m-1 min-h-[45px] max-h-[180px] resize-y border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] rounded-[10px] px-[0.8rem] py-[0.62rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_86%,var(--color-primary-soft)_14%)_90%,transparent)] text-[var(--color-text-primary)] text-[0.92rem] focus:outline-none focus:border-[color:color-mix(in_oklab,var(--color-primary)_50%,transparent)]"
                     placeholder={`Message #${channelInfo?.channelName || "general"}`}
                     aria-label="Message composer"
                     ref={inputRef}
+                    rows={1}
                 />
 
                 <Button
