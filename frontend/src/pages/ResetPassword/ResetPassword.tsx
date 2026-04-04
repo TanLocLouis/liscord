@@ -69,6 +69,10 @@ const ResetPassword: React.FC = () => {
                         <button type="submit" className="login-submit-button h-[45px]">
                             Send Reset Link
                         </button>
+
+                        <div className="mt-1">
+                            <label className="text-[var(--color-text-secondary)]">Done Reset? Login <a href="/login" className="text-[var(--color-primary)]">here</a></label>
+                        </div>
                     </form>
                 </div>
             </div>

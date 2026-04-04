@@ -36,6 +36,16 @@ async function signUp(userData: SignUpInput) {
         throw new AppError('User already exists', 409, 'USER_EXISTS');
     }
 
+    // Check if email exists
+    const userByEmail = await authModel.getUserByEmail(user.email);
+    if (userByEmail) {
+        if (userByEmail.is_active) {
+            throw new AppError('Email already in use', 409, 'EMAIL_EXISTS');
+        } else {
+            await authModel.deleteUserByEmail(user.email);
+        }
+    }
+
     // Create user
     const result = await authModel.createUser(user);
 
@@ -69,7 +79,11 @@ async function verifyAccount(token: string) {
 }
 
 async function login(username: string, password: string) {
-    const user = await authModel.getUserByUsername(username);
+    const userByUsername = await authModel.getUserByUsername(username);
+    const userByEmail = await authModel.getUserByEmail(username);
+
+    const user = userByUsername || userByEmail;
+
     if (!user) {
         throw new AppError('User not found', 404, 'USER_NOT_FOUND');
     }
