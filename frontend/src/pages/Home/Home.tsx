@@ -5,12 +5,13 @@ import SidebarChannels from '@components/SidebarChannels/SidebarChannels.js';
 import ChatBox from '@components/ChatBox/ChatBox.js';
 import { motion } from "motion/react";
 import { useParams } from 'react-router';
+import Welcome from '@components/Welcome/Welcome.js';
 
 const Home: React.FC = () => {
   // const currentServerId = useParams().serverId;
   // const currentChannelId = useParams().channelId;
 
-  const [currentServerInfo, setCurrentServerInfo] = useState<{ serverName: string; serverId: string } | null>(localStorage.getItem("lastServerInfo") ? JSON.parse(localStorage.getItem("lastServerInfo") as string) : null);
+  const [currentServerInfo, setCurrentServerInfo] = useState<{ serverName: string; serverId: string } | null>(localStorage.getItem("lastServerInfo") ? JSON.parse(localStorage.getItem("lastServerInfo") as string) : { serverName: "Discover", serverId: "discover" });
   const [currentChannelInfo, setCurrentChannelInfo] = useState<{ channelName: string; channelId: string } | null>(localStorage.getItem("lastChannelInfo") ? JSON.parse(localStorage.getItem("lastChannelInfo") as string) : null);
 
   const handleServerInfoChanged = (serverName: string, serverId: string) => {
@@ -35,8 +36,14 @@ const Home: React.FC = () => {
         <div className="h-screen m-0">
           <div className="h-screen m-0 pt-10 pb-10 flex">
             <Sidebar onServerInfoChanged={handleServerInfoChanged}/>
-            <SidebarChannels serverInfo={currentServerInfo} onChannelInfoChanged={handleOnChannelInfoChanged}/>
-            <ChatBox channelInfo={currentChannelInfo} serverInfo={currentServerInfo}/>
+            {currentServerInfo?.serverId === "discover" ? (
+              <Welcome username={"User"} serverName={currentServerInfo ? currentServerInfo.serverName : "No Server Selected"} />
+            ) : (
+              <>
+                <SidebarChannels serverInfo={currentServerInfo} onChannelInfoChanged={handleOnChannelInfoChanged}/>
+                <ChatBox channelInfo={currentChannelInfo} serverInfo={currentServerInfo}/>
+              </>
+            )}
           </div>
         </div>
       </motion.div>

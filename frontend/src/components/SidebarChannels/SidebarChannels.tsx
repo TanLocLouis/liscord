@@ -75,16 +75,16 @@ const SidebarChannels = ( { serverInfo, onChannelInfoChanged } : SidebarChannels
     };
 
     return (
-        <div className="w-[200px] h-full pl-2 bg-[var(--color-secondary)] border-l border-[var(--color-text-primary)]">
+        <div className="w-[200px] h-full pl-2 bg-[var(--color-secondary)] border-l border-[var(--color-text-primary)] overflow-y-auto">
             <div>
                 <h2 className="text-lg font-bold mb-2 text-[var(--color-text-secondary)]">{serverInfo?.serverName ? serverInfo.serverName : "Please choose or create a server"}</h2> 
             </div>
 
             <hr className="border-[var(--color-text-primary)] my-2"></hr>
             
-            <div>
+            <div className="">
                 <label className="text-[var(--color-text-secondary)]">{channelsList.length === 0 ? "No channels available" : ""}</label>
-                <ul className="mt-2 mb-1 flex flex-col gap-2">
+                <ul className="mt-2 flex flex-col gap-2">
                     {channelsList.map((channel) => (
                         <ChannelCard
                             key={channel.channel_id}

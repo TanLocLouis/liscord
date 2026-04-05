@@ -73,11 +73,11 @@ const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververIn
 
     return (
         <div>
-            <div className="sidebar bg-[var(--color-secondary)] m-0 w-16 h-full flex flex-col align-center items-center">
-                <ul className="overflow-y-auto">
+            <div className="sidebar bg-[var(--color-secondary)] m-0 w-16 h-full flex flex-col align-center items-center overflow-y-auto">
+                <ul className="">
                     {serverList.map((server) => (
                         <li onContextMenu={(e) => openMenu(e, server.server_id)} key={server.server_id} onClick={() => handleServerClicked(server.server_name, server.server_id)} title={server.server_name}>
-                            <div className={`w-10 h-10 flex justify-center items-center m-0.5 mt-3 border-2 rounded-lg border-[var(--color-text-primary)] hover:scale-105 hover:bg-[var(--color-primary)] hover:shadow-[0_0_5px_5px_var(--color-primary)] transition-all duration-200 ${serverInfo.currentServerId === server.server_id ? 'bg-[var(--color-primary)]' : ''}`}>
+                            <div className={`w-10 h-10 flex justify-center items-center m-0.5 mt-3 border-2 rounded-lg border-[var(--color-text-primary)] hover:scale-105 hover:bg-[var(--color-primary)] hover:shadow-[0_0_5px_5px_var(--color-primary)] transition-all duration-200 ${serverInfo.currentServerId === server.server_id ? 'scale-105 bg-[var(--color-primary)] shadow-[0_0_5px_5px_var(--color-primary)]' : ''}`}>
                                 {server.server_icon ? (
                                     <img src={server.server_icon} alt={server.server_name} className="w-full h-full object-cover rounded-lg" />
 
@@ -89,12 +89,15 @@ const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververIn
                     ))}
 
                     <hr className="border-[var(--color-text-primary)] my-2"></hr>
-
-                    <li key={"discover"}>
+                    
+                    {/* Discover */}
+                    <li key={"discover"} onClick={() => handleServerClicked("Discover", "discover")}>
                         <div className="w-10 h-10 flex justify-center items-center m-0.5 mt-3 border-2 rounded-lg border-[var(--color-text-primary)] hover:scale-105 hover:bg-[var(--color-primary)] hover:shadow-[0_2px_10px_rgba(255,255,255,0.5)] transition-all duration-200">
                             {discoverIcon}
                         </div>
                     </li>
+
+                    {/* Create Server */}
                     <li key={"create-server"} onClick={() => setIsCreateServerOpen(true)}>
                         <div className="w-10 h-10 flex justify-center items-center m-0.5 mt-3 border-2 rounded-lg border-[var(--color-text-primary)] hover:scale-105 hover:bg-[var(--color-primary)] hover:shadow-[0_2px_10px_rgba(255,255,255,0.5)] transition-all duration-200">
                             {createServerIcon}
