@@ -11,15 +11,30 @@ const Home: React.FC = () => {
   // const currentServerId = useParams().serverId;
   // const currentChannelId = useParams().channelId;
 
-  const [currentServerInfo, setCurrentServerInfo] = useState<{ serverName: string; serverId: string } | null>(localStorage.getItem("lastServerInfo") ? JSON.parse(localStorage.getItem("lastServerInfo") as string) : { serverName: "Discover", serverId: "discover" });
+  const getInitialServerInfo = (): { serverName: string; serverId: string; serverType: 'group' | 'dm' } => {
+    const persisted = localStorage.getItem("lastServerInfo");
+    if (!persisted) {
+      return { serverName: "Discover", serverId: "discover", serverType: 'group' };
+    }
+
+    const parsed = JSON.parse(persisted) as { serverName?: string; serverId?: string; serverType?: 'group' | 'dm' };
+    const serverName = parsed.serverName || "Discover";
+    const serverId = parsed.serverId || "discover";
+    const inferredType: 'group' | 'dm' = parsed.serverType
+      || (serverName.toLowerCase().startsWith("dm:") ? 'dm' : 'group');
+
+    return { serverName, serverId, serverType: inferredType };
+  };
+
+  const [currentServerInfo, setCurrentServerInfo] = useState<{ serverName: string; serverId: string; serverType: 'group' | 'dm' } | null>(getInitialServerInfo());
   const [currentChannelInfo, setCurrentChannelInfo] = useState<{ channelName: string; channelId: string } | null>(localStorage.getItem("lastChannelInfo") ? JSON.parse(localStorage.getItem("lastChannelInfo") as string) : null);
 
-  const handleServerInfoChanged = (serverName: string, serverId: string) => {
-    setCurrentServerInfo({ serverName, serverId });
+  const handleServerInfoChanged = (serverName: string, serverId: string, serverType: 'group' | 'dm') => {
+    setCurrentServerInfo({ serverName, serverId, serverType });
 
     // Store last server info in localStorage 
     // to persist across page reloads
-    localStorage.setItem("lastServerInfo", JSON.stringify({ serverName, serverId }));
+    localStorage.setItem("lastServerInfo", JSON.stringify({ serverName, serverId, serverType }));
   }
 
   const handleOnChannelInfoChanged = (channelName: string, channelId: string) => {

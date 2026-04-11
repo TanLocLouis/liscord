@@ -139,6 +139,12 @@ router.post('/dm/get-or-create',
 	serverController.getOrCreateDM
 );
 
+// GET /api/servers/:serverId/dm/e2ee-peer-key
+router.get('/:serverId/dm/e2ee-peer-key',
+	authenticate,
+	serverController.getDME2EEPeerKey
+);
+
 // DELETE /api/servers/:serverId/leave
 router.delete('/:serverId/leave',
 	authenticate,

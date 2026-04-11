@@ -1,5 +1,5 @@
 import CreateServer from "./CreateServer.js"
-import { useAuth } from "@contexts/AuthContext";
+import { useAuth } from "@contexts/AuthContext.jsx";
 import { fetchWithAuth } from "@utils/fetchWithAuth.jsx";
 import useContextMenu from "../../hooks/useContextMenu.js";
 import ContextMenu from "@components/ChannelMenu/ContextMenu.js";
@@ -7,7 +7,7 @@ import ContextMenu from "@components/ChannelMenu/ContextMenu.js";
 import { useEffect, useState } from "react";
 
 interface onSerververInfoChangedType {
-    (serverName: string, serverId: string): void;
+    (serverName: string, serverId: string, serverType: 'group' | 'dm'): void;
 }
 interface SidebarType {
     currentServerId: string;
@@ -17,6 +17,7 @@ interface ServerListType {
     server_id: string;
     server_name: string;
     server_icon: string | null;
+    type: 'group' | 'dm';
 }
 
 const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververInfoChangedType }) => {
@@ -57,13 +58,13 @@ const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververIn
     }, [isCreateServerOpen])
 
     // 
-    const handleServerClicked = (serverName: string, serverId: string) => {
+    const handleServerClicked = (serverName: string, serverId: string, serverType: 'group' | 'dm') => {
         setServerInfo({
             currentServerId: serverId,
             currentServerName: serverName,
         });
         
-        onServerInfoChanged(serverName, serverId);
+        onServerInfoChanged(serverName, serverId, serverType);
 
     };
 
@@ -76,7 +77,7 @@ const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververIn
             <div className="sidebar bg-[var(--color-secondary)] m-0 w-16 h-full flex flex-col align-center items-center overflow-y-auto">
                 <ul className="">
                     {serverList.map((server) => (
-                        <li onContextMenu={(e) => openMenu(e, server.server_id)} key={server.server_id} onClick={() => handleServerClicked(server.server_name, server.server_id)} title={server.server_name}>
+                        <li onContextMenu={(e) => openMenu(e, server.server_id)} key={server.server_id} onClick={() => handleServerClicked(server.server_name, server.server_id, server.type)} title={server.server_name}>
                             <div className={`w-10 h-10 flex justify-center items-center m-0.5 mt-3 border-2 rounded-lg border-[var(--color-text-primary)] hover:scale-105 hover:bg-[var(--color-primary)] hover:shadow-[0_0_5px_5px_var(--color-primary)] transition-all duration-200 ${serverInfo.currentServerId === server.server_id ? 'scale-105 bg-[var(--color-primary)] shadow-[0_0_5px_5px_var(--color-primary)]' : ''}`}>
                                 {server.server_icon ? (
                                     <img src={server.server_icon} alt={server.server_name} className="w-full h-full object-cover rounded-lg" />
@@ -91,7 +92,7 @@ const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververIn
                     <hr className="border-[var(--color-text-primary)] my-2"></hr>
                     
                     {/* Discover */}
-                    <li key={"discover"} onClick={() => handleServerClicked("Discover", "discover")}>
+                    <li key={"discover"} onClick={() => handleServerClicked("Discover", "discover", 'group')}>
                         <div className="w-10 h-10 flex justify-center items-center m-0.5 mt-3 border-2 rounded-lg border-[var(--color-text-primary)] hover:scale-105 hover:bg-[var(--color-primary)] hover:shadow-[0_2px_10px_rgba(255,255,255,0.5)] transition-all duration-200">
                             {discoverIcon}
                         </div>

@@ -4,7 +4,9 @@ import messageServices from '../services/messageServices.js';
 
 type CreateMessageBody = {
 	channelId: string;
-	content: string;
+	content?: string;
+	ciphertext?: string;
+	iv?: string;
 	type?: string;
 	replyTo?: string;
 	replyToContent?: string;
@@ -16,13 +18,15 @@ const createMessage = asyncHandler(async (req, res) => {
 	}
 
 	const body = req.body as Partial<CreateMessageBody>;
-	if (!body.channelId || !body.content) {
+	if (!body.channelId || (!body.content && !body.ciphertext)) {
 		throw new AppError('No data provided', 400, 'NO_DATA_PROVIDED');
 	}
 
 	const payload = {
 		channelId: body.channelId,
-		content: body.content,
+		...(typeof body.content === 'string' ? { content: body.content } : {}),
+		...(typeof body.ciphertext === 'string' ? { ciphertext: body.ciphertext } : {}),
+		...(typeof body.iv === 'string' ? { iv: body.iv } : {}),
 		...(body.type !== undefined ? { type: body.type } : {}),
 		replyTo: typeof body.replyTo === 'string' && body.replyTo.trim() ? body.replyTo.trim() : null,
 		replyToContent: typeof body.replyToContent === 'string' && body.replyToContent.trim() ? body.replyToContent.trim() : null,

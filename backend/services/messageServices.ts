@@ -2,12 +2,15 @@ import { randomUUID } from 'node:crypto';
 import AppError from '../utils/AppError.js';
 import messageModel from '../models/messageModel.js';
 import channelModel from '../models/channelModel.js';
+import serverModel from '../models/serverModel.js';
 import usersModel from '../models/usersModel.js';
 import emojiServices from './emojiServices.js';
 
 type CreateMessagePayload = {
 	channelId: string;
-	content: string;
+	content?: string;
+	ciphertext?: string | null;
+	iv?: string | null;
 	type?: string;
 	replyTo?: string | null;
 	replyToContent?: string | null;
@@ -40,18 +43,29 @@ async function createMessage(userId: string, payload: CreateMessagePayload) {
 	}
 
 	const normalizedChannelId = payload.channelId.trim();
-	const normalizedContent = payload.content.trim();
+	const normalizedContent = typeof payload.content === 'string' ? payload.content.trim() : '';
+	const normalizedCiphertext = typeof payload.ciphertext === 'string' ? payload.ciphertext.trim() : '';
+	const normalizedIv = typeof payload.iv === 'string' ? payload.iv.trim() : '';
 
 	if (!normalizedChannelId) {
 		throw new AppError('Channel id is required', 400, 'INVALID_CHANNEL_ID');
 	}
 
-	if (!normalizedContent) {
+	if (!normalizedContent && !normalizedCiphertext) {
 		throw new AppError('Message content is required', 400, 'INVALID_CONTENT');
 	}
 
+	if (normalizedCiphertext && !normalizedIv) {
+		throw new AppError('Encrypted messages must include iv', 400, 'INVALID_ENCRYPTED_PAYLOAD');
+	}
+
 	assertUuid(normalizedChannelId, 'INVALID_CHANNEL_ID', 'Invalid channel id format');
-	await assertChannelAccess(userId, normalizedChannelId);
+	const channel = await assertChannelAccess(userId, normalizedChannelId);
+	const server = await serverModel.getServerById(channel.server_id);
+
+	if (server?.type === 'dm' && !normalizedCiphertext) {
+		throw new AppError('DM messages must be encrypted', 400, 'DM_E2EE_REQUIRED');
+	}
 
 	const messageId = randomUUID();
 
@@ -60,6 +74,8 @@ async function createMessage(userId: string, payload: CreateMessagePayload) {
 		messageId,
 		userId,
 		content: normalizedContent,
+		ciphertext: normalizedCiphertext || null,
+		iv: normalizedIv || null,
 		type: payload.type ?? 'text',
 	};
 

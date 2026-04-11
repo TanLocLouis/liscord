@@ -21,6 +21,13 @@ type UserSearchRow = RowDataPacket & {
     is_active: 0 | 1;
 };
 
+type UserPublicEncryptionKeyRow = RowDataPacket & {
+    user_id: string;
+    public_key: string;
+    algorithm: string;
+    updated_at: Date;
+};
+
 const usersModel = {
     async getMyProfile(userId: string): Promise<UserProfileRow | null> {
         const [rows] = await pool.execute<UserProfileRow[]>(
@@ -86,7 +93,31 @@ const usersModel = {
             [searchTerm, searchTerm]
         );
         return rows;
-    }
+    },
+    async upsertPublicEncryptionKey(userId: string, publicKey: string, algorithm: string = 'ECDH-P256'): Promise<boolean> {
+        const [result] = await pool.execute<ResultSetHeader>(
+            `INSERT INTO user_encryption_keys (user_id, public_key, algorithm, updated_at)
+             VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+             ON DUPLICATE KEY UPDATE
+                public_key = VALUES(public_key),
+                algorithm = VALUES(algorithm),
+                updated_at = CURRENT_TIMESTAMP`,
+            [userId, publicKey, algorithm]
+        );
+
+        return result.affectedRows > 0;
+    },
+    async getPublicEncryptionKeyByUserId(userId: string): Promise<UserPublicEncryptionKeyRow | null> {
+        const [rows] = await pool.execute<UserPublicEncryptionKeyRow[]>(
+            `SELECT user_id, public_key, algorithm, updated_at
+             FROM user_encryption_keys
+             WHERE user_id = ?
+             LIMIT 1`,
+            [userId]
+        );
+
+        return rows[0] || null;
+    },
 }
 
 export default usersModel;

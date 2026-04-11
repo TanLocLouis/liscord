@@ -82,6 +82,48 @@ async function searchUsers(searchQuery: string) {
     return users;
 }
 
+async function setMyPublicEncryptionKey(userId: string, publicKey: string, algorithm: string = 'ECDH-P256') {
+    const normalizedUserId = userId?.trim();
+    const normalizedPublicKey = publicKey?.trim();
+
+    if (!normalizedUserId) {
+        throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+    }
+
+    if (!normalizedPublicKey) {
+        throw new AppError('Public key is required', 400, 'MISSING_PUBLIC_KEY');
+    }
+
+    const updated = await usersModel.upsertPublicEncryptionKey(normalizedUserId, normalizedPublicKey, algorithm);
+    if (!updated) {
+        throw new AppError('Failed to update public key', 500, 'PUBLIC_KEY_UPDATE_FAILED');
+    }
+
+    return {
+        message: 'Public encryption key updated',
+    };
+}
+
+async function getUserPublicEncryptionKey(userId: string) {
+    const normalizedUserId = userId?.trim();
+
+    if (!normalizedUserId) {
+        throw new AppError('User id is required', 400, 'NO_USER_ID');
+    }
+
+    const key = await usersModel.getPublicEncryptionKeyByUserId(normalizedUserId);
+    if (!key) {
+        throw new AppError('Public encryption key not found', 404, 'PUBLIC_KEY_NOT_FOUND');
+    }
+
+    return {
+        userId: key.user_id,
+        publicKey: key.public_key,
+        algorithm: key.algorithm,
+        updatedAt: key.updated_at,
+    };
+}
+
 export default {
     getMyProfile,
     getUserProfile,
@@ -89,4 +131,6 @@ export default {
     updateUserAvatar,
     updateUserBio,
     searchUsers,
+    setMyPublicEncryptionKey,
+    getUserPublicEncryptionKey,
 }

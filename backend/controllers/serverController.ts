@@ -237,6 +237,20 @@ const leaveServer = asyncHandler(async (req, res) => {
 	res.status(200).json(result);
 });
 
+const getDME2EEPeerKey = asyncHandler(async (req, res) => {
+	if (!req.user?.user_id || typeof req.user.user_id !== 'string') {
+		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+	}
+
+	const { serverId } = req.params;
+	if (!serverId || typeof serverId !== 'string') {
+		throw new AppError('Invalid server ID', 400, 'INVALID_SERVER_ID');
+	}
+
+	const result = await serverServices.getDME2EEPeerKey(serverId, req.user.user_id);
+	res.status(200).json(result);
+});
+
 export default {
 	createServer,
 	getServerDetails,
@@ -249,4 +263,5 @@ export default {
 	addServerMember,
 	getOrCreateDM,
 	leaveServer,
+	getDME2EEPeerKey,
 };

@@ -34,10 +34,23 @@ router.post(
 			.isUUID()
 			.withMessage('Channel id must be a valid UUID'),
 		body('content')
+			.optional()
 			.isString()
 			.trim()
 			.isLength({ min: 1, max: 2000 })
-			.withMessage('Content is required and must be less than 2000 characters'),
+			.withMessage('Content must be less than 2000 characters'),
+		body('ciphertext')
+			.optional()
+			.isString()
+			.trim()
+			.isLength({ min: 1, max: 12000 })
+			.withMessage('Ciphertext must be between 1 and 12000 characters'),
+		body('iv')
+			.optional()
+			.isString()
+			.trim()
+			.isLength({ min: 8, max: 128 })
+			.withMessage('IV must be between 8 and 128 characters'),
 		body('type')
 			.optional()
 			.isString()
@@ -50,6 +63,21 @@ router.post(
 			.trim()
 			.isUUID()
 			.withMessage('Reply to must be a valid UUID'),
+		body().custom((value) => {
+			const hasContent = typeof value.content === 'string' && value.content.trim().length > 0;
+			const hasCiphertext = typeof value.ciphertext === 'string' && value.ciphertext.trim().length > 0;
+			const hasIv = typeof value.iv === 'string' && value.iv.trim().length > 0;
+
+			if (!hasContent && !hasCiphertext) {
+				throw new Error('Either content or ciphertext is required');
+			}
+
+			if (hasCiphertext && !hasIv) {
+				throw new Error('Encrypted payload requires iv');
+			}
+
+			return true;
+		}),
 	],
 	validateData,
 	messageController.createMessage

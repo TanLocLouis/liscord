@@ -17,7 +17,8 @@ const getMyProfile = asyncHandler(async (req, res) => {
 });
 
 const getUserProfile = asyncHandler(async (req, res) => {
-    const user_id = req.params.user_id;
+    const rawUserId = req.params.user_id;
+    const user_id = typeof rawUserId === 'string' ? rawUserId : undefined;
     if (!user_id) {
         throw new AppError('No user id provided', 400, 'NO_USER_ID');
     }
@@ -80,6 +81,31 @@ const searchUsers = asyncHandler(async (req, res) => {
     res.status(200).json({ users });
 });
 
+const setMyPublicEncryptionKey = asyncHandler(async (req, res) => {
+    const userId = req.user?.user_id;
+    if (!userId) {
+        throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
+    }
+
+    const { publicKey, algorithm } = req.body as { publicKey?: string; algorithm?: string };
+    if (!publicKey || typeof publicKey !== 'string') {
+        throw new AppError('Public key is required', 400, 'MISSING_PUBLIC_KEY');
+    }
+
+    const result = await usersService.setMyPublicEncryptionKey(userId, publicKey, algorithm ?? 'ECDH-P256');
+    res.status(200).json(result);
+});
+
+const getUserPublicEncryptionKey = asyncHandler(async (req, res) => {
+    const userId = req.params.userId;
+    if (!userId || typeof userId !== 'string') {
+        throw new AppError('User id is required', 400, 'NO_USER_ID');
+    }
+
+    const result = await usersService.getUserPublicEncryptionKey(userId);
+    res.status(200).json(result);
+});
+
 export default {
     getMyProfile,
     getUserProfile,
@@ -87,4 +113,6 @@ export default {
     updateUserAvatar,
     updateUserBio,
     searchUsers,
+    setMyPublicEncryptionKey,
+    getUserPublicEncryptionKey,
 }

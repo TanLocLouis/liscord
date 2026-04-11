@@ -80,6 +80,7 @@ const serverModel = {
 				s.server_icon,
 				s.members_count,
 				s.owner_id,
+				s.type,
 				s.created_at
 			FROM server_members sm
 			INNER JOIN servers s ON sm.server_id = s.server_id
@@ -288,6 +289,14 @@ const serverModel = {
 			[serverId, userId]
 		);
 		return result.affectedRows > 0;
+	},
+	async getServerMemberIds(serverId: string): Promise<string[]> {
+		const [rows] = await pool.execute<ServerMemberRow[]>(
+			`SELECT user_id FROM server_members WHERE server_id = ?`,
+			[serverId]
+		);
+
+		return rows.map((row) => row.user_id);
 	},
 };
 

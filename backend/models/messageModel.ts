@@ -6,7 +6,9 @@ export type CreateMessageInput = {
 	channelId: string;
 	messageId: string;
 	userId: string;
-	content: string;
+	content?: string;
+	ciphertext?: string | null;
+	iv?: string | null;
 	type?: string;
 	replyTo?: string | null;
 	replyToContent?: string | null
@@ -17,6 +19,8 @@ export type Message = {
 	message_id: string;
 	user_id: string;
 	content: string;
+	ciphertext?: string | null;
+	iv?: string | null;
 	type: string;
 	created_at: Date;
 	updated_at: Date | null;
@@ -71,20 +75,24 @@ const messageModel = {
 				channel_id,
 				message_id,
 				user_id,
+				ciphertext,
+				iv,
 				content,
 				type,
 				created_at,
 				updated_at,
 				reply_to,
 				reply_to_content
-			) VALUES (?, ?, ?, ?, ?, toTimestamp(now()), null, ?, ?)
+			) VALUES (?, ?, ?, ?, ?, ?, ?, toTimestamp(now()), null, ?, ?)
 		`;
 
 		const params = [
 			types.Uuid.fromString(messageData.channelId),
 			types.Uuid.fromString(messageData.messageId),
 			types.Uuid.fromString(messageData.userId),
-			messageData.content,
+			messageData.ciphertext ?? null,
+			messageData.iv ?? null,
+			messageData.content ?? '',
 			messageData.type ?? 'text',
 			messageData.replyTo ? types.Uuid.fromString(messageData.replyTo) : null,
 			messageData.replyToContent ?? null,
@@ -99,6 +107,8 @@ const messageModel = {
 				channel_id,
 				message_id,
 				user_id,
+				ciphertext,
+				iv,
 				content,
 				type,
 				created_at,
@@ -130,6 +140,8 @@ const messageModel = {
 			channel_id: row.channel_id.toString(),
 			message_id: row.message_id.toString(),
 			user_id: row.user_id.toString(),
+			ciphertext: row.ciphertext ?? null,
+			iv: row.iv ?? null,
 			// user_name: userIdToUsernameMap[row.user_id.toString()] || 'Unknown User',
 			content: row.content,
 			type: row.type,

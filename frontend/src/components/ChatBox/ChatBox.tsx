@@ -10,6 +10,12 @@ import {
     showIncomingMessageBrowserNotification,
 } from "./browserNotification.js";
 import { updateMessagesWithReaction } from "./messageReaction.js";
+import {
+    decryptMessage,
+    encryptMessage,
+    getE2EEAlgorithm,
+    getOrCreateStoredKeyPair,
+} from "./e2ee.js";
 
 type ServerEmoji = {
     emoji_id: string;
@@ -32,6 +38,7 @@ interface ChatBoxProps {
     serverInfo: {
         serverName: string;
         serverId: string;
+        serverType: "group" | "dm";
     } | null;
 }
 
@@ -39,6 +46,8 @@ interface MessagePayload {
     channelId: string;
     content: string;
     replyTo: string;
+    ciphertext?: string;
+    iv?: string;
 }
 
 type ReactionUpdatedPayload = {
@@ -52,6 +61,7 @@ type ReactionUpdatedPayload = {
 const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     const authContext = useAuth();
     const activeChannelIdRef = useRef<string | null>(null);
+    const isDmChannelRef = useRef(false);
 
     // Message states
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -68,6 +78,11 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
     const [serverEmojis, setServerEmojis] = useState<ServerEmoji[]>([]);
     const serverEmojisRef = useRef<ServerEmoji[]>([]);
+    const [dmPeerPublicKey, setDMPeerPublicKey] = useState<string | null>(null);
+    const dmPeerPublicKeyRef = useRef<string | null>(null);
+    const [myPrivateJwk, setMyPrivateJwk] = useState<JsonWebKey | null>(null);
+    const myPrivateJwkRef = useRef<JsonWebKey | null>(null);
+    const [isDME2EEReady, setIsDME2EEReady] = useState(false);
 
     // Scroll down button
     const [showScrollDown, setShowScrollDown] = useState(false);
@@ -77,11 +92,126 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     // Media
     const toAvatar = (name: string) => `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(name || "U")}`;
     const notificationSound = new Audio("/sounds/nyaa.mp3");
+    const inferredDmByName = (serverInfo?.serverName || "").toLowerCase().startsWith("dm:")
+        || (channelInfo?.channelName || "").toLowerCase() === "dm";
+    const isDmChannel = serverInfo?.serverType === "dm" || inferredDmByName;
+
+    const resolveMessageContent = async (payload: { content?: string | null; ciphertext?: string | null; iv?: string | null }) => {
+        if (!isDmChannelRef.current) {
+            return payload.content || "";
+        }
+
+        if (payload.ciphertext && payload.iv && myPrivateJwkRef.current && dmPeerPublicKeyRef.current) {
+            try {
+                return await decryptMessage(
+                    payload.ciphertext,
+                    payload.iv,
+                    myPrivateJwkRef.current,
+                    dmPeerPublicKeyRef.current,
+                );
+            } catch (error) {
+                console.error("Failed to decrypt DM message", error);
+                return "[Unable to decrypt message]";
+            }
+        }
+
+        if (payload.ciphertext) {
+            return "[Encrypted message]";
+        }
+
+        return payload.content || "";
+    };
 
     // Channel
     useEffect(() => {
         activeChannelIdRef.current = channelInfo?.channelId ?? null;
     }, [channelInfo?.channelId]);
+
+    useEffect(() => {
+        isDmChannelRef.current = isDmChannel;
+    }, [isDmChannel]);
+
+    useEffect(() => {
+        dmPeerPublicKeyRef.current = dmPeerPublicKey;
+    }, [dmPeerPublicKey]);
+
+    useEffect(() => {
+        myPrivateJwkRef.current = myPrivateJwk;
+    }, [myPrivateJwk]);
+
+    useEffect(() => {
+        if (!isDmChannel || !serverInfo?.serverId || !authContext?.accessToken || !authContext?.userInfo?.user_id) {
+            setDMPeerPublicKey(null);
+            setMyPrivateJwk(null);
+            setIsDME2EEReady(false);
+            return;
+        }
+
+        let isCancelled = false;
+
+        const setupDME2EE = async () => {
+            try {
+                const keyPair = await getOrCreateStoredKeyPair(authContext.userInfo.user_id);
+
+                const uploadResponse = await fetchWithAuth(
+                    authContext,
+                    `${import.meta.env.VITE_API_URL}/api/users/e2ee/public-key`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${authContext?.accessToken}`,
+                        },
+                        body: JSON.stringify({
+                            publicKey: keyPair.publicKey,
+                            algorithm: getE2EEAlgorithm(),
+                        }),
+                    }
+                );
+
+                if (!uploadResponse.ok) {
+                    throw new Error("Failed to upload E2EE public key");
+                }
+
+                const peerResponse = await fetchWithAuth(
+                    authContext,
+                    `${import.meta.env.VITE_API_URL}/api/servers/${serverInfo.serverId}/dm/e2ee-peer-key`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${authContext?.accessToken}`,
+                        },
+                    }
+                );
+
+                if (!peerResponse.ok) {
+                    throw new Error("Failed to fetch DM peer public key");
+                }
+
+                const peerData = await peerResponse.json();
+
+                if (isCancelled) {
+                    return;
+                }
+
+                setMyPrivateJwk(keyPair.privateJwk);
+                setDMPeerPublicKey(peerData.publicKey || null);
+                setIsDME2EEReady(Boolean(peerData.publicKey));
+            } catch (error) {
+                console.error("Failed to prepare DM E2EE", error);
+                if (!isCancelled) {
+                    setIsDME2EEReady(false);
+                }
+            }
+        };
+
+        setupDME2EE();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [isDmChannel, serverInfo?.serverId, authContext?.accessToken, authContext?.userInfo?.user_id]);
 
     // Ask notification permission once after authentication.
     useEffect(() => {
@@ -121,11 +251,12 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             const data = await response.json();
 
             const normalizedMessages = Array.isArray(data.messages)
-                ? data.messages.map((message: ChatMessage) => ({
+                ? await Promise.all(data.messages.map(async (message: ChatMessage & { ciphertext?: string | null; iv?: string | null }) => ({
                     ...message,
+                    content: await resolveMessageContent(message),
                     avatar: message.avatar || toAvatar(message.user_name),
                     reactions: Array.isArray(message.reactions) ? message.reactions : [],
-                }))
+                })))
                 : [];
 
             setMessages(normalizedMessages);
@@ -206,11 +337,13 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
         socketRef.current = socket;
 
         // Handle incoming messages
-        socket.on("receive_message", (incomingMessage: any) => {
+        socket.on("receive_message", async (incomingMessage: any) => {
             const activeChannelId = activeChannelIdRef.current;
             if (!activeChannelId || incomingMessage?.channel_id !== activeChannelId) {
                 return;
             }
+
+            const resolvedContent = await resolveMessageContent(incomingMessage);
 
             const normalizedMessage: ChatMessage = {
                 message_id: incomingMessage.message_id,
@@ -218,7 +351,9 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                 user_name: incomingMessage.user_name || "Unknown User",
                 avatar: incomingMessage.avatar || toAvatar(incomingMessage.user_name || "Unknown User"),
                 created_at: incomingMessage.created_at || new Date().toISOString(),
-                content: incomingMessage.content || "",
+                content: resolvedContent,
+                ciphertext: incomingMessage.ciphertext || null,
+                iv: incomingMessage.iv || null,
                 reply_to: incomingMessage.reply_to || null,
                 reply_to_content: incomingMessage.reply_to_content || null,
                 mine: incomingMessage.user_name && incomingMessage.user_name === authContext.userInfo?.username,
@@ -235,7 +370,13 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                 if (normalizedMessage.user_name !== authContext.userInfo?.username) {
                     notificationSound.currentTime = 0;
                     notificationSound.play();
-                    showIncomingMessageBrowserNotification(incomingMessage, channelInfo?.channelName || "general");
+                    showIncomingMessageBrowserNotification(
+                        {
+                            ...incomingMessage,
+                            content: isDmChannelRef.current ? "Encrypted message" : incomingMessage.content,
+                        },
+                        channelInfo?.channelName || "general"
+                    );
                 }
                 return [normalizedMessage, ...prev];
             });
@@ -326,6 +467,18 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             setIsSending(true);
             const content = messageInput.content.trim();
             const socket = socketRef.current;
+            let encryptedCiphertext: string | undefined;
+            let encryptedIv: string | undefined;
+
+            if (isDmChannel) {
+                if (!isDME2EEReady || !myPrivateJwkRef.current || !dmPeerPublicKeyRef.current) {
+                    throw new Error("DM encryption keys are not ready");
+                }
+
+                const encrypted = await encryptMessage(content, myPrivateJwkRef.current, dmPeerPublicKeyRef.current);
+                encryptedCiphertext = encrypted.ciphertext;
+                encryptedIv = encrypted.iv;
+            }
 
             // Send message via WebSocket if connected
             // and save to database via REST API
@@ -334,9 +487,11 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                     roomId: channelInfo.channelId,
                     channelId: channelInfo.channelId,
                     avatar: authContext?.userInfo ? authContext.userInfo.avatar : toAvatar("Unknown User"),
-                    content,
+                    content: isDmChannel ? "" : content,
+                    ciphertext: encryptedCiphertext,
+                    iv: encryptedIv,
                     replyTo: isReplying ? isReplying.message_id : undefined,
-                    replyToContent: isReplying ? isReplying.content : undefined,
+                    replyToContent: isReplying && !isDmChannel ? isReplying.content : undefined,
                 });
 
                 setMessageInput({
@@ -360,8 +515,11 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                     },
                     body: JSON.stringify({
                         channelId: channelInfo.channelId,
-                        content,
+                        content: isDmChannel ? "" : content,
+                        ciphertext: encryptedCiphertext,
+                        iv: encryptedIv,
                         replyTo: isReplying ? isReplying.message_id : undefined,
+                        replyToContent: isReplying && !isDmChannel ? isReplying.content : undefined,
                     }),
                 }
             );

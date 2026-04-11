@@ -6,6 +6,8 @@ type SendMessagePayload = {
 	roomId?: string;
 	channelId?: string;
 	content?: string;
+	ciphertext?: string;
+	iv?: string;
 	avatar?: string | null;
 	type?: string;
 	replyTo?: string | null;
@@ -180,9 +182,16 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 			const roomId = typeof data.roomId === 'string' ? data.roomId.trim() : '';
 			const channelId = typeof data.channelId === 'string' && data.channelId.trim() ? data.channelId.trim() : roomId;
 			const content = typeof data.content === 'string' ? data.content.trim() : '';
+			const ciphertext = typeof data.ciphertext === 'string' ? data.ciphertext.trim() : '';
+			const iv = typeof data.iv === 'string' ? data.iv.trim() : '';
 
-			if (!roomId || !channelId || !content) {
-				socket.emit('socket_error', { message: 'roomId, channelId/roomId and content are required' });
+			if (!roomId || !channelId || (!content && !ciphertext)) {
+				socket.emit('socket_error', { message: 'roomId, channelId/roomId and content/ciphertext are required' });
+				return;
+			}
+
+			if (ciphertext && !iv) {
+				socket.emit('socket_error', { message: 'Encrypted payload requires iv' });
 				return;
 			}
             
@@ -190,6 +199,8 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 			const payload = {
 				channelId,
 				content,
+				ciphertext: ciphertext || null,
+				iv: iv || null,
 				avatar: data.avatar ?? null,
 				type: data.type === 'text' ? 'text' : 'text',
 				replyTo: typeof data.replyTo === 'string' && data.replyTo.trim() ? data.replyTo.trim() : null,
@@ -209,6 +220,8 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 				user_name: authUser.username,
 				avatar: data.avatar ?? null,
 				content,
+				ciphertext: ciphertext || null,
+				iv: iv || null,
 				type: payload.type ?? 'text',
 				reply_to: payload.replyTo ?? null,
 				reply_to_content: payload.replyToContent ?? null,

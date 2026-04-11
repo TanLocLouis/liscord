@@ -396,6 +396,44 @@ async function leaveServer(serverId: string, userId: string) {
 	};
 }
 
+async function getDME2EEPeerKey(serverId: string, requesterId: string) {
+	if (!serverId || !requesterId) {
+		throw new AppError('Invalid parameters', 400, 'INVALID_PARAMETERS');
+	}
+
+	const server = await serverModel.getServerById(serverId);
+	if (!server) {
+		throw new AppError('Server not found', 404, 'SERVER_NOT_FOUND');
+	}
+
+	if (server.type !== 'dm') {
+		throw new AppError('E2EE peer key endpoint is DM-only', 400, 'NOT_DM_SERVER');
+	}
+
+	const isMember = await serverModel.isServerMember(serverId, requesterId);
+	if (!isMember) {
+		throw new AppError('You are not a member of this server', 403, 'FORBIDDEN');
+	}
+
+	const memberIds = await serverModel.getServerMemberIds(serverId);
+	const peerUserId = memberIds.find((memberId) => memberId !== requesterId);
+	if (!peerUserId) {
+		throw new AppError('No DM peer found yet', 409, 'DM_PEER_NOT_FOUND');
+	}
+
+	const key = await usersModel.getPublicEncryptionKeyByUserId(peerUserId);
+	if (!key) {
+		throw new AppError('DM peer public key is not available yet', 404, 'PEER_PUBLIC_KEY_NOT_FOUND');
+	}
+
+	return {
+		peerUserId,
+		publicKey: key.public_key,
+		algorithm: key.algorithm,
+		updatedAt: key.updated_at,
+	};
+}
+
 export default {
 	createServer,
 	getServerDetails,
@@ -409,4 +447,5 @@ export default {
 	getExistingDM,
 	getOrCreateDM,
 	leaveServer,
+	getDME2EEPeerKey,
 };

@@ -33,4 +33,16 @@ router.patch('/bio',
     usersController.updateUserBio
 );
 
+// PUT /api/users/e2ee/public-key
+router.put('/e2ee/public-key',
+    authenticate,
+    usersController.setMyPublicEncryptionKey
+);
+
+// GET /api/users/:userId/e2ee/public-key
+router.get('/:userId/e2ee/public-key',
+    authenticate,
+    usersController.getUserPublicEncryptionKey
+);
+
 export default router;

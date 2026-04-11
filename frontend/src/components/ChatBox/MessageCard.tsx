@@ -27,6 +27,8 @@ export type ChatMessage = {
     avatar: string;
     created_at: string;
     content: string;
+    ciphertext?: string | null;
+    iv?: string | null;
     reply_to?: string;
     reply_to_content?: string;
     mine?: boolean;
