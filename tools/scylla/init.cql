@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS messages_by_channel (
     created_at timestamp,
     message_id uuid,
     user_id uuid,
+    ciphertext text,
+    iv text,
     content text,
     type text,
     updated_at timestamp,
