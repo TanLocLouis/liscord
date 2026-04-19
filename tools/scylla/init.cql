@@ -45,3 +45,18 @@ CREATE TABLE IF NOT EXISTS reactions_by_user (
     created_at timestamp,
     PRIMARY KEY ((user_id), message_id, emoji_id)
 );
+
+CREATE TABLE IF NOT EXISTS server_reads (
+    user_id uuid,
+    server_id uuid,
+    last_read timestamp,
+    PRIMARY KEY ((server_id), user_id)
+);
+
+CREATE TABLE IF NOT EXISTS channel_reads (
+    user_id uuid,
+    channel_id uuid,
+    last_read timestamp,
+    last_read_message_id uuid,
+    PRIMARY KEY ((channel_id), user_id)
+);

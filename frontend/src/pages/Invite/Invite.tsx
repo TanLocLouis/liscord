@@ -107,7 +107,7 @@ const Invite: React.FC = () => {
               <button
                 type="button"
                 className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-white"
-                onClick={() => navigate('/channels/@me')}
+                onClick={() => navigate('/')}
               >
                 Open Channels
               </button>
@@ -115,7 +115,7 @@ const Invite: React.FC = () => {
               <button
                 type="button"
                 className="rounded-md bg-[var(--color-primary)] px-4 py-2 text-white"
-                onClick={() => navigate('/channels/@me')}
+                onClick={() => navigate('/')}
               >
                 Back to Home
               </button>

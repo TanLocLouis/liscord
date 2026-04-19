@@ -14,9 +14,10 @@
 - ✅ Push notification for message.
 - Search old message (history).
 - ✅ DM (Direct Message).
-- ✅ Search
-- ✅ Markdown in messages
-- Friends
+- ✅ Search.
+- ✅ Markdown in messages.
+- Friends.
+- Unread Message.
 
 ## Future
 - Rate limitter.
