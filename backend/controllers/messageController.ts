@@ -47,8 +47,11 @@ const getChannelMessages = asyncHandler(async (req, res) => {
 	}
 
 	const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+	const cursor = typeof req.query.cursor === 'string' && req.query.cursor.trim().length > 0
+		? req.query.cursor.trim()
+		: undefined;
 
-	const result = await messageServices.getChannelMessages(req.user.user_id, channelId, limit);
+	const result = await messageServices.getChannelMessages(req.user.user_id, channelId, limit, cursor);
 	res.status(200).json(result);
 });
 

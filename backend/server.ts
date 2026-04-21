@@ -17,6 +17,9 @@ app.use(cors());
 app.use(express.json());
 
 // Socket.IO Setup
+// TODO: This socket instance will be deployed
+// Separatelly from this server
+// In production
 const httpServer = createServer(app);
 const io = new SocketIOServer(httpServer, {
     cors: {

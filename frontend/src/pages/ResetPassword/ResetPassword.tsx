@@ -12,6 +12,7 @@ const ResetPassword: React.FC = () => {
     const [ResetForm, setResetForm] = useState<ResetFormData>({
         email: "",
     })
+    const [isResetting, setIsResetting] = useState(false);
 
     const handleResetFormChanged = (e: ChangeEvent<HTMLInputElement>) => {
         setResetForm({
@@ -24,6 +25,7 @@ const ResetPassword: React.FC = () => {
     const { addToast } = useToast();
     const handleResetPasswordFormSubmitted = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setIsResetting(true);
 
         try {
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/reset-password`, {
@@ -46,6 +48,8 @@ const ResetPassword: React.FC = () => {
             console.error("Failed to reset password", err);
             addToast("error", "Failed to reset password. Please try again later.");
             return;
+        } finally {
+            setIsResetting(false);
         }
     }
 
@@ -66,8 +70,8 @@ const ResetPassword: React.FC = () => {
                                 onChange={handleResetFormChanged}/>
                         </div>
 
-                        <button type="submit" className="login-submit-button h-[45px]">
-                            Send Reset Link
+                        <button type="submit" className="login-submit-button h-[45px]" disabled={isResetting}>
+                            {isResetting ? "Sending..." : "Send Reset Link"}
                         </button>
 
                         <div className="mt-1">

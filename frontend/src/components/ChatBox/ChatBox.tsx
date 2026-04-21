@@ -50,6 +50,12 @@ interface MessagePayload {
     iv?: string;
 }
 
+type ChannelMessagesResponse = {
+    messages?: Array<ChatMessage & { ciphertext?: string | null; iv?: string | null }>;
+    nextCursor?: string | null;
+    hasMore?: boolean;
+};
+
 type ReactionUpdatedPayload = {
     action: "added" | "removed";
     channelId: string;
@@ -72,6 +78,9 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     });
     const [isSending, setIsSending] = useState(false);
     const [isReplying, setIsReplying] = useState<ChatMessage | false>(false);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+    const [hasMoreHistory, setHasMoreHistory] = useState(true);
+    const [nextCursor, setNextCursor] = useState<string | null>(null);
     const socketRef = useRef<Socket | null>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
     const [emitTyping, setEmitTyping] = useState(false);
@@ -83,6 +92,9 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     const [myPrivateJwk, setMyPrivateJwk] = useState<JsonWebKey | null>(null);
     const myPrivateJwkRef = useRef<JsonWebKey | null>(null);
     const [isDME2EEReady, setIsDME2EEReady] = useState(false);
+    const hasMoreHistoryRef = useRef(true);
+    const nextCursorRef = useRef<string | null>(null);
+    const isLoadingHistoryRef = useRef(false);
 
     // Scroll down button
     const [showScrollDown, setShowScrollDown] = useState(false);
@@ -138,6 +150,18 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     useEffect(() => {
         myPrivateJwkRef.current = myPrivateJwk;
     }, [myPrivateJwk]);
+
+    useEffect(() => {
+        hasMoreHistoryRef.current = hasMoreHistory;
+    }, [hasMoreHistory]);
+
+    useEffect(() => {
+        nextCursorRef.current = nextCursor;
+    }, [nextCursor]);
+
+    useEffect(() => {
+        isLoadingHistoryRef.current = isLoadingHistory;
+    }, [isLoadingHistory]);
 
     useEffect(() => {
         if (!isDmChannel || !serverInfo?.serverId || !authContext?.accessToken || !authContext?.userInfo?.user_id) {
@@ -225,16 +249,34 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     }, [authContext?.accessToken]);
 
     // Fetch message history when channel changes
-    const fetchMessages = async () => {
+    const fetchMessages = async (options?: { append?: boolean; cursor?: string | null }) => {
+        const append = Boolean(options?.append);
+
         if (!channelInfo?.channelId) {
             setMessages([]);
+            setHasMoreHistory(false);
+            setNextCursor(null);
+            return;
+        }
+
+        if (append && (!hasMoreHistoryRef.current || isLoadingHistoryRef.current || !options?.cursor)) {
             return;
         }
 
         try {
+            if (append) {
+                setIsLoadingHistory(true);
+            }
+
+            const params = new URLSearchParams();
+            params.set("limit", "40");
+            if (options?.cursor) {
+                params.set("cursor", options.cursor);
+            }
+
             const response = await fetchWithAuth(
                 authContext,
-                `${import.meta.env.VITE_API_URL}/api/messages/channel/${channelInfo.channelId}`,
+                `${import.meta.env.VITE_API_URL}/api/messages/channel/${channelInfo.channelId}?${params.toString()}`,
                 {
                     method: "GET",
                     headers: {
@@ -248,7 +290,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                 throw new Error("Failed to fetch messages");
             }
 
-            const data = await response.json();
+            const data = await response.json() as ChannelMessagesResponse;
 
             const normalizedMessages = Array.isArray(data.messages)
                 ? await Promise.all(data.messages.map(async (message: ChatMessage & { ciphertext?: string | null; iv?: string | null }) => ({
@@ -259,16 +301,36 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                 })))
                 : [];
 
-            setMessages(normalizedMessages);
+            setNextCursor(data.nextCursor ?? null);
+            setHasMoreHistory(Boolean(data.hasMore));
+
+            if (append) {
+                setMessages((prevMessages) => {
+                    const existingIds = new Set(prevMessages.map((message) => message.message_id));
+                    const olderOnly = normalizedMessages.filter((message) => !existingIds.has(message.message_id));
+                    return [...prevMessages, ...olderOnly];
+                });
+            } else {
+                setMessages(normalizedMessages);
+            }
         } catch (error) {
             console.error("Error fetching messages:", error);
-            setMessages([]);
+            if (!append) {
+                setMessages([]);
+            }
+        } finally {
+            if (append) {
+                setIsLoadingHistory(false);
+            }
         }
     };
 
     // Fetch message when open channel
     useEffect(() => {
-        fetchMessages();
+        setNextCursor(null);
+        setHasMoreHistory(true);
+        setIsLoadingHistory(false);
+        fetchMessages({ append: false, cursor: null });
     }, [channelInfo?.channelId, authContext?.accessToken]);
 
     useEffect(() => {
@@ -628,11 +690,16 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
         if (!messageList) return;
 
         const handleScroll = () => {
-            const { scrollTop } = messageList;
+            const { scrollTop, scrollHeight, clientHeight } = messageList;
 
             // The messageList is flex column reversed
             // so we check if scrollTop is less than a negative threshold
             setShowScrollDown(scrollTop < -20);
+
+            const isNearTop = Math.abs(scrollTop) + clientHeight >= scrollHeight - 80;
+            if (isNearTop && hasMoreHistoryRef.current && !isLoadingHistoryRef.current) {
+                fetchMessages({ append: true, cursor: nextCursorRef.current });
+            }
         };
 
         messageList.addEventListener("scroll", handleScroll);
@@ -640,7 +707,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
         return () => {
             messageList.removeEventListener("scroll", handleScroll);
         };
-    }, []);
+    }, [channelInfo?.channelId, authContext?.accessToken]);
 
     const scrollToBottom = () => {
         const messageList = messageListRef.current;
@@ -769,6 +836,11 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                     disabled={!channelInfo?.channelId || !messageInput?.content.trim() || isSending}
                 />
             </footer>
+            {isDmChannel && (
+                <div className="flex justify-center items-center p-2">
+                    <label className="">Message in {channelInfo?.channelName || "general"} is <strong>encrypted</strong> and can only be read in this session.</label>
+                </div>
+            )}
         </section>
     );
 };

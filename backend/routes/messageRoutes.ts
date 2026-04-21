@@ -19,6 +19,12 @@ router.get(
 			.optional()
 			.isInt({ min: 1, max: 100 })
 			.withMessage('Limit must be between 1 and 100'),
+		query('cursor')
+			.optional()
+			.isString()
+			.trim()
+			.isLength({ min: 1, max: 4096 })
+			.withMessage('Cursor must be a valid pagination token'),
 	],
 	validateData,
 	messageController.getChannelMessages

@@ -19,6 +19,7 @@ const Login = () => {
         username: "",
         password: ""
     })
+    const [isLoginingIn, setIsLoggingIn] = useState(false);
 
     const handleLoginFormChanged = (e: ChangeEvent<HTMLInputElement>) => {
         setLoginForm({
@@ -33,6 +34,7 @@ const Login = () => {
     const { login } = useAuth();
     const handleLoginFormSubmitted = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        setIsLoggingIn(true);
 
         const result = await login(LoginForm);
 
@@ -44,6 +46,7 @@ const Login = () => {
         } else {
             addToast("error", "Login failed. Please check your credentials and try again.");
         }
+        setIsLoggingIn(false);
     }
 
     return (
@@ -80,8 +83,7 @@ const Login = () => {
                             onChange={handleLoginFormChanged}
                         />
 
-                        <Button type="submit" className="login-submit-button h-[45px]" title="Submit">
-                            Login
+                        <Button type="submit" className="login-submit-button h-[45px]" title={isLoginingIn ? "Logging in..." : "Login"} disabled={isLoginingIn}>
                         </Button>
 
                         <div className="forgot-password-link">

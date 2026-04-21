@@ -92,7 +92,7 @@ async function createMessage(userId: string, payload: CreateMessagePayload) {
 	};
 }
 
-async function getChannelMessages(userId: string, channelId: string, limit?: number) {
+async function getChannelMessages(userId: string, channelId: string, limit?: number, cursor?: string) {
 	if (!userId) {
 		throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
 	}
@@ -106,7 +106,8 @@ async function getChannelMessages(userId: string, channelId: string, limit?: num
 	await assertChannelAccess(userId, normalizedChannelId);
 
 	const messageLimit = limit && limit > 0 && limit <= 100 ? limit : 50;
-	const messages = await messageModel.getMessagesByChannelId(normalizedChannelId, messageLimit);
+	const page = await messageModel.getMessagesByChannelId(normalizedChannelId, messageLimit, cursor);
+	const messages = page.messages;
 
 	// find usernames for each message
 	const userIds = Array.from(new Set(messages.map(msg => msg.user_id)));
@@ -153,6 +154,8 @@ async function getChannelMessages(userId: string, channelId: string, limit?: num
 
 	return {
 		messages: enrichedMessages,
+		nextCursor: page.nextCursor,
+		hasMore: page.hasMore,
 	};
 }
 

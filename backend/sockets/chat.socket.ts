@@ -207,7 +207,7 @@ const chatSocket = (io: SocketIOServer, socket: Socket) => {
 				replyToContent: typeof data.replyToContent === 'string' && data.replyToContent.trim() ? data.replyToContent.trim() : null,
 			};
 
-			console.log('[DEBUG]: ', data.avatar);
+			// console.log('[DEBUG]: ', data.avatar);
 
             // Create the message in the database
 			const created = await messageServices.createMessage(authUser.userId, payload);

@@ -1,6 +1,5 @@
 import client from '../db/scylla.js';
 import { types } from 'cassandra-driver';
-import usersModel from './usersModel.js';
 
 export type CreateMessageInput = {
 	channelId: string;
@@ -26,6 +25,12 @@ export type Message = {
 	updated_at: Date | null;
 	reply_to?: string | null;
 	reply_to_content?: string | null;
+};
+
+export type MessagePage = {
+	messages: Message[];
+	nextCursor: string | null;
+	hasMore: boolean;
 };
 
 export type ReactionCount = {
@@ -101,7 +106,7 @@ const messageModel = {
 		await client.execute(query, params, { prepare: true });
 	},
 
-	async getMessagesByChannelId(channelId: string, limit: number = 50): Promise<Message[]> {
+	async getMessagesByChannelId(channelId: string, limit: number = 50, cursor?: string): Promise<MessagePage> {
 		const query = `
 			SELECT
 				channel_id,
@@ -117,26 +122,22 @@ const messageModel = {
 				reply_to_content
 			FROM liscord.messages_by_channel
 			WHERE channel_id = ?
-			LIMIT ?
 		`;
 
-		const params = [types.Uuid.fromString(channelId), limit];
+		const params = [types.Uuid.fromString(channelId)];
+		const pageState = cursor ? Buffer.from(cursor, 'base64').toString('utf8') : undefined;
+		const queryOptions: { prepare: true; fetchSize: number; pageState?: string } = {
+			prepare: true,
+			fetchSize: limit,
+		};
 
-		const result = await client.execute(query, params, { prepare: true });
+		if (pageState) {
+			queryOptions.pageState = pageState;
+		}
 
-		// find usernames for each message
-		const userIds = Array.from(new Set(result.rows.map(row => row.user_id.toString())));
-		const userIdToUsernameMap: Record<string, string> = {};
+		const result = await client.execute(query, params, queryOptions);
 
-		// for (const userId of userIds) {
-		// 	const username = await usersModel.getUserNameByUserId(userId);
-		// 	console.log(`[DEBUG] Fetched username for userId ${userId}: ${username}`);
-		// 	if (username) {
-		// 		userIdToUsernameMap[userId] = username;
-		// 	}
-		// }
-
-		return result.rows.map((row) => ({
+		const messages = result.rows.map((row) => ({
 			channel_id: row.channel_id.toString(),
 			message_id: row.message_id.toString(),
 			user_id: row.user_id.toString(),
@@ -151,6 +152,16 @@ const messageModel = {
 			reply_to_content: row.reply_to_content ? row.reply_to_content.toString() : null,
 			// reply_to_content: row.reply_to_content.toString() || null,
 		}));
+
+		const nextCursor = result.pageState
+			? Buffer.from(result.pageState, 'utf8').toString('base64')
+			: null;
+
+		return {
+			messages,
+			nextCursor,
+			hasMore: Boolean(result.pageState),
+		};
 	},
 
 	async addReaction(messageId: string, emojiId: string, userId: string): Promise<boolean> {
