@@ -16,6 +16,8 @@ import {
     getE2EEAlgorithm,
     getOrCreateStoredKeyPair,
 } from "./e2ee.js";
+import EmojisPanel from "./EmojisPanel.js";
+import { input } from "motion/react-client";
 
 type ServerEmoji = {
     emoji_id: string;
@@ -531,7 +533,8 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             const socket = socketRef.current;
             let encryptedCiphertext: string | undefined;
             let encryptedIv: string | undefined;
-
+            
+            // Check DM Channel
             if (isDmChannel) {
                 if (!isDME2EEReady || !myPrivateJwkRef.current || !dmPeerPublicKeyRef.current) {
                     throw new Error("DM encryption keys are not ready");
@@ -684,6 +687,19 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
         }
     };
 
+    const handleSendEmoji = (emojiUrl: string | null) => {
+        if (!messageInput) {
+            return;
+        }
+
+        setMessageInput((prev) => ({
+            ...prev,
+            content: prev?.content ? `${prev.content} ![](${emojiUrl})` : `![${emojiUrl}](${emojiUrl})`,
+        }));
+
+        inputRef.current?.focus();
+    }
+
     // Handle scroll down button
     useEffect(() => {
         const messageList = messageListRef.current;
@@ -814,7 +830,8 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             )}
 
             {/* Message type box */}
-            <footer className="border-t border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] grid grid-cols-[1fr_auto] items-center gap-[0.6rem] px-4 py-[0.8rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_74%,transparent)] max-md:grid-cols-1 place-items-center">
+            <footer className="border-t border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] grid grid-cols-[auto_1fr_auto] items-center gap-[0.6rem] px-4 py-[0.8rem] bg-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-secondary)_72%,var(--color-primary-soft)_28%)_74%,transparent)] max-md:grid-cols-1 place-items-center">
+                <EmojisPanel availableEmojis={serverEmojis} onSendEmoji={handleSendEmoji}/>
                 <textarea
                     value={messageInput?.content || ""}
                     onChange={((event) => setMessageInput(prev => ({ ...prev, content: event.target.value })))}

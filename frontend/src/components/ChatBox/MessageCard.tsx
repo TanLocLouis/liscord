@@ -91,6 +91,12 @@ const MessageCard = ({ message, availableEmojis, onReact }: MessageCardProps) =>
                                     {...props}
                                 />
                             ),
+                            img: ({ ...props }) => (
+                                <img
+                                    className="max-h-60 rounded object-contain"
+                                    {...props}
+                                />
+                            ),
                             pre: ({ ...props }) => (
                                 <pre
                                     className="my-2 overflow-x-auto rounded-lg bg-[color:color-mix(in_oklab,var(--color-secondary)_78%,transparent)] p-2"
@@ -109,6 +115,7 @@ const MessageCard = ({ message, availableEmojis, onReact }: MessageCardProps) =>
                     >
                         {message.content}
                     </ReactMarkdown>
+                    <img src={message.content} alt={message.emojiName} className="h-4 w-4 object-contain" />
                 </div>
 
                 <div className="mt-2 flex flex-wrap gap-2">
