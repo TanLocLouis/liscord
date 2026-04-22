@@ -39,9 +39,10 @@ interface MessageCardProps {
     message: ChatMessage;
     availableEmojis: ServerEmoji[];
     onReact: (message: ChatMessage, emojiId: string, reactedByMe: boolean) => void;
+    isOnline: boolean;
 }
 
-const MessageCard = ({ message, availableEmojis, onReact }: MessageCardProps) => {
+const MessageCard = ({ message, availableEmojis, onReact, isOnline }: MessageCardProps) => {
     const redirect = useNavigate();
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -59,20 +60,24 @@ const MessageCard = ({ message, availableEmojis, onReact }: MessageCardProps) =>
                     : "border-[color:color-mix(in_oklab,color-mix(in_oklab,var(--color-text-primary)_22%,transparent)_74%,transparent)]"
             }`}
         >
-            <img
-                className="w-10 h-10 rounded-full object-cover"
-                aria-hidden="true"
-                src={message.avatar}
-                alt={`${message.user_name}'s avatar`}
-                onClick={handleOpenUserProfile}
-            />
+            <div className="relative">
+                <img
+                    className="w-10 h-10 rounded-full object-cover"
+                    aria-hidden="true"
+                    src={message.avatar}
+                    alt={`${message.user_name}'s avatar`}
+                    onClick={handleOpenUserProfile}
+                />
+
+                {isOnline && <span className="absolute bottom-0 left-6 h-3 w-3 rounded-full bg-green-500 border border-white"></span>}
+            </div>
 
             <div>
                 <div className="flex items-baseline gap-2">
                     <strong className="text-[0.95rem] text-[var(--color-text-primary)]">{message.user_name}</strong>
                     <time className="text-xs opacity-70 text-[var(--color-text-primary)]">{timeAgo(message.created_at)}</time>
                 </div>
-                <div className="mt-[0.35rem] text-[0.9rem] leading-[1.45] text-[var(--color-text-primary)]">
+                <div className="mt-[0em] text-[0.9rem] leading-[1.45] text-[var(--color-text-primary)]">
                     <ReactMarkdown
                         rehypePlugins={[rehypeSanitize]}
                         components={{
@@ -115,7 +120,6 @@ const MessageCard = ({ message, availableEmojis, onReact }: MessageCardProps) =>
                     >
                         {message.content}
                     </ReactMarkdown>
-                    <img src={message.content} alt={message.emojiName} className="h-4 w-4 object-contain" />
                 </div>
 
                 <div className="mt-2 flex flex-wrap gap-2">

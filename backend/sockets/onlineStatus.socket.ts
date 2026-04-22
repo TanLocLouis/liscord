@@ -2,6 +2,7 @@ import type { Server as SocketIOServer, Socket } from 'socket.io';
 import utils from './utils.js';
 
 const onlineUserList = new Set<string | undefined>();
+
 const addOnlineUser = (userId: string | undefined) => {
     onlineUserList.add(userId);
 }
@@ -29,12 +30,13 @@ const onlineStatusSocket = (io: SocketIOServer, socket: Socket) => {
 
     // io.emit('user_online', { userId: authUser?.userId, username: authUser?.username });
     // io.emit('online_user_count', { count: countOnlineUsers() });
-    // io.emit('get_online_users', { users: getOnlineUsers() });
+    io.emit('get_online_users', { users: getOnlineUsers() });
 
     socket.on('disconnect', () => {
         removeOnlineUser(authUser?.userId);
         // io.emit('user_offline', { userId: authUser?.userId, username: authUser?.username });
         // io.emit('online_user_count', { count: countOnlineUsers() });
+        io.emit('get_online_users', { users: getOnlineUsers() });
     });
 }
 

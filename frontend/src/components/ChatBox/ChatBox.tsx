@@ -82,21 +82,28 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
     const [isReplying, setIsReplying] = useState<ChatMessage | false>(false);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     const [hasMoreHistory, setHasMoreHistory] = useState(true);
+    const isLoadingHistoryRef = useRef(false);
+    const hasMoreHistoryRef = useRef(true);
     const [nextCursor, setNextCursor] = useState<string | null>(null);
+    const nextCursorRef = useRef<string | null>(null);
+
     const socketRef = useRef<Socket | null>(null);
     const inputRef = useRef<HTMLTextAreaElement>(null);
+
     const [emitTyping, setEmitTyping] = useState(false);
     const [typingUsers, setTypingUsers] = useState<string[]>([]);
+
     const [serverEmojis, setServerEmojis] = useState<ServerEmoji[]>([]);
     const serverEmojisRef = useRef<ServerEmoji[]>([]);
+
     const [dmPeerPublicKey, setDMPeerPublicKey] = useState<string | null>(null);
     const dmPeerPublicKeyRef = useRef<string | null>(null);
     const [myPrivateJwk, setMyPrivateJwk] = useState<JsonWebKey | null>(null);
     const myPrivateJwkRef = useRef<JsonWebKey | null>(null);
     const [isDME2EEReady, setIsDME2EEReady] = useState(false);
-    const hasMoreHistoryRef = useRef(true);
-    const nextCursorRef = useRef<string | null>(null);
-    const isLoadingHistoryRef = useRef(false);
+
+    const [onlineMembers, setOnlineMembers] = useState<any>([]);
+
 
     // Scroll down button
     const [showScrollDown, setShowScrollDown] = useState(false);
@@ -480,6 +487,11 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
             ));
         });
 
+        socket.on("get_online_users", (payload: { users: string[] }) => {
+            console.log("Online users:", payload.users);
+            setOnlineMembers(payload.users);
+        });
+
         return () => {
             socket.disconnect();
         };
@@ -767,20 +779,23 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                             )}
                             {/* Indent replied message */}
                             <div className={`${message.reply_to ? "ml-5 mb-2" : ""}`}>
-                                {message.user_name === authContext.userInfo?.username && (
+                                {/* {message.user_name === authContext.userInfo?.username && (
                                     <span className="left-[20px] top-[50px] text-[0.8em] text-[var(--color-primary)] opacity-80" aria-label="You">You</span>
-                                )}
+                                )} */}
                                 <MessageCard
                                     key={message.message_id}
                                     message={message}
                                     availableEmojis={serverEmojis}
                                     onReact={handleReactMessage}
+                                    isOnline={onlineMembers.includes(message.user_id)}
                                 />
                             </div>
                             {/* Show reply button when hovering */}
-                            <div className="hidden group-hover:flex justify-center items-center rounded-lg hover:bg-[var(--color-primary)]"
+                            <div className="hidden w-full h-full group-hover:flex justify-center items-center"
                                  onClick={handleReplyMessage(message)}>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" fill="var(--color-text-primary)" viewBox="0 0 640 640"><path d="M268.2 82.4C280.2 87.4 288 99 288 112L288 192L400 192C497.2 192 576 270.8 576 368C576 481.3 494.5 531.9 475.8 542.1C473.3 543.5 470.5 544 467.7 544C456.8 544 448 535.1 448 524.3C448 516.8 452.3 509.9 457.8 504.8C467.2 496 480 478.4 480 448.1C480 395.1 437 352.1 384 352.1L288 352.1L288 432.1C288 445 280.2 456.7 268.2 461.7C256.2 466.7 242.5 463.9 233.3 454.8L73.3 294.8C60.8 282.3 60.8 262 73.3 249.5L233.3 89.5C242.5 80.3 256.2 77.6 268.2 82.6z"/></svg>
+                                <div className="w-10 h-10 flex justify-center items-center rounded-lg hover:bg-[var(--color-primary)]">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="1.5em" height="1.5em" fill="var(--color-text-primary)" viewBox="0 0 640 640"><path d="M268.2 82.4C280.2 87.4 288 99 288 112L288 192L400 192C497.2 192 576 270.8 576 368C576 481.3 494.5 531.9 475.8 542.1C473.3 543.5 470.5 544 467.7 544C456.8 544 448 535.1 448 524.3C448 516.8 452.3 509.9 457.8 504.8C467.2 496 480 478.4 480 448.1C480 395.1 437 352.1 384 352.1L288 352.1L288 432.1C288 445 280.2 456.7 268.2 461.7C256.2 466.7 242.5 463.9 233.3 454.8L73.3 294.8C60.8 282.3 60.8 262 73.3 249.5L233.3 89.5C242.5 80.3 256.2 77.6 268.2 82.6z"/></svg>
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -824,6 +839,7 @@ const ChatBox = ( { channelInfo, serverInfo } : ChatBoxProps) => {
                         message={isReplying}
                         availableEmojis={serverEmojis}
                         onReact={handleReactMessage}
+                        isOnline={onlineMembers.includes(isReplying.user_id)}
                     />
                 </div>
                 </>

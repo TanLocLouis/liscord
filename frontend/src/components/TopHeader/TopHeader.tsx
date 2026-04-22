@@ -75,7 +75,7 @@ const TopHeader = () => {
         },
         {
             id: "profile",
-            icon: <ProfileIcon />,
+            icon: userInfo?.avatar ? <img src={userInfo.avatar} alt="Profile" className="w-[1.2em] h-[1.2em] rounded-lg" /> : <ProfileIcon />,
             title: "Profile",
             onClick: handleProfileClicked,
             show: userInfo,

@@ -28,3 +28,5 @@
 - Implement `E2E` using Group key.
 
 - Use `Debouncing` to optimize performance when searching.
+
+- Update online status realtime - tradeoff performance.

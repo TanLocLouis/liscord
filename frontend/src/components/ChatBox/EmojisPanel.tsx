@@ -20,7 +20,7 @@ function EmojisPanel( { availableEmojis, onSendEmoji }: EmojisPanelProps ) {
             <button
                 type="button"
                 onClick={() => setShowEmojiPicker((prev) => !prev)}
-                className="inline-flex w-10 h-10 items-center justify-center rounded-full border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] bg-[color:color-mix(in_oklab,var(--color-secondary)_80%,transparent)] px-2 py-[0.1rem] text-xs"
+                className="inline-flex w-10 h-10 items-center justify-center rounded-lg border border-[color:color-mix(in_oklab,var(--color-text-primary)_22%,transparent)] bg-[color:color-mix(in_oklab,var(--color-secondary)_80%,transparent)] px-2 py-[0.1rem] text-xs"
             >
                 +
             </button>

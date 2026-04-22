@@ -20,13 +20,18 @@ interface ServerListType {
     type: 'group' | 'dm';
 }
 
-const Sidebar = ( { onServerInfoChanged } : { onServerInfoChanged: onSerververInfoChangedType }) => {
+interface SidebarPropsType {
+    onServerInfoChanged: onSerververInfoChangedType;
+    currentServerInfo : { serverName: string; serverId: string; serverType: 'group' | 'dm' } | null;
+}
+
+const Sidebar = ( { onServerInfoChanged, currentServerInfo } : SidebarPropsType  ) => {
     const [isCreateServerOpen, setIsCreateServerOpen] = useState<true | false>(false);
     const [serverList, setServerList] = useState<ServerListType[]>([]);
 
     const [serverInfo, setServerInfo] = useState<SidebarType>({
-        currentServerId: "",
-        currentServerName: "",
+        currentServerId: currentServerInfo?.serverId || "",
+        currentServerName: currentServerInfo?.serverName || "",
     });
 
     const { menu, openMenu, closeMenu } = useContextMenu();

@@ -22,7 +22,9 @@ const AuthProvider = ( { children }: { children: React.ReactNode } ) => {
     const { addToast } = useToast();
 
     useEffect(() => {
-        refreshToken();
+        if (userInfo) {
+            refreshToken();
+        }
     }, []);
 
     const signup = async (SignUpForm: {username: string, email: string, password: string}) => {

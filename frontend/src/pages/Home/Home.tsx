@@ -50,7 +50,7 @@ const Home: React.FC = () => {
       >
         <div className="h-screen m-0">
           <div className="h-screen m-0 pt-10 pb-10 flex">
-            <Sidebar onServerInfoChanged={handleServerInfoChanged}/>
+            <Sidebar currentServerInfo={currentServerInfo} onServerInfoChanged={handleServerInfoChanged}/>
             {currentServerInfo?.serverId === "discover" ? (
               <Welcome username={"User"} serverName={currentServerInfo ? currentServerInfo.serverName : "No Server Selected"} />
             ) : (
