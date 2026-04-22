@@ -1,6 +1,13 @@
 # Changelog
 
-## 
+## [1.1.4] - 2026-04-22
+- Welcome page.
+- E2E in DM.
+- Improve UI/UX.
+- Send emoji message.
+- Online status.
+
+## [1.1.3] - 2026-04-04
 - Search user by username or email.
 - See other user profile.
 - Send DM message.
